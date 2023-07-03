@@ -28,6 +28,7 @@ class Dashboard extends Component {
       products: [],
       pages: 0,
       loading: false
+
     };
   }
 
@@ -479,4 +480,14 @@ class Dashboard extends Component {
   }
 }
 
+
 export default withRouter(Dashboard);
+
+
+
+
+
+
+
+
+

@@ -86,7 +86,7 @@ class Login extends React.Component {
             onClick={() => {
               this.props.navigate("/register");
             }}
-          >
+            >
             Register
           </Link>
         </div>
