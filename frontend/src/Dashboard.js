@@ -22,13 +22,13 @@ class Dashboard extends Component {
       name: '',
       desg: '',
       joiningDate:'',
-      dateOfBirth:'',
+      dob:'',
       dept:'',
       gender:'',
       stat:'',
       mob: '',
-      pre_address:'',
-      perm_address:'',
+      pre_addr:'',
+      perm_addr:'',
       file: '',
       fileName: '',
       salary: '',  
@@ -139,7 +139,7 @@ class Dashboard extends Component {
     file.append('name', this.state.name);
     file.append('desg', this.state.desg);
     file.append('joiningDate', this.state.joiningDate);
-    file.append('dateOfBirth', this.state.dateOfBirth);
+    file.append('dob', this.state.dob);
     file.append('dept', this.state.dept);
     file.append('gender', this.state.gender);
     file.append('stat', this.state.stat);
@@ -163,7 +163,7 @@ class Dashboard extends Component {
       });
 
       this.handleProductClose();
-      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dateOfBirth:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', file: null, page: 1 }, () => {
+      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dob:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', file: null, page: 1 }, () => {
         this.getProduct();
       });
     }).catch((err) => {
@@ -187,13 +187,13 @@ class Dashboard extends Component {
     file.append('name', this.state.name);
     file.append('desg', this.state.desg);
     file.append('joiningDate', this.state.joiningDate);
-    file.append('dateOfBirth', this.state.dateOfBirth);
+    file.append('dob', this.state.dob);
     file.append('dept', this.state.dept);
     file.append('gender', this.state.gender);
     file.append('stat', this.state.stat);
     file.append('mob', this.state.mob);
-    file.append('gender', this.state.pre_addr);
-    file.append('gender', this.state.perm_addr);
+    file.append('pre_addr', this.state.pre_addr);
+    file.append('perm_addr', this.state.perm_addr);
     file.append('salary', this.state.salary);
 
     axios.post('http://localhost:2000/update-product', file, {
@@ -210,7 +210,7 @@ class Dashboard extends Component {
       });
 
       this.handleProductEditClose();
-      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dateOfBirth:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', file: null }, () => {
+      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dob:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', file: null }, () => {
        
        this.getProduct();
       });
@@ -234,13 +234,13 @@ class Dashboard extends Component {
       name: '',
       desg: '',
       joiningDate:'',
-      dateOfBirth:'',
+      dob:'',
       dept:'',
       gender:'',
       stat:'',
       mob: '',
-      pre_address:'',
-      perm_address:'',
+      pre_addr:'',
+      perm_addr:'',
       file: '',
       fileName: '',
       salary: '',  
@@ -265,7 +265,7 @@ class Dashboard extends Component {
       name: data.name,
       desg: data.desg,
       joiningDate: data.joiningDate,
-      dateOfBirth: data.dateOfBirth,
+      dob: data.dob,
       dept: data.dept,
       gender: data.gender,
       stat: data.stat,
@@ -282,7 +282,7 @@ class Dashboard extends Component {
     this.setState({ openProductEditModal: false });
   };
 
-  render() {
+ render() {
     return (
       <div>
         {this.state.loading && <LinearProgress size={40} />}
@@ -371,8 +371,8 @@ class Dashboard extends Component {
             id="standard-basic"
             type="date"
             autoComplete="off"
-            name="dateOfBirth"
-            value={this.state.dateOfBirth}
+            name="dob"
+            value={this.state.dob}
             onChange={this.onChange}
             placeholder="Date of Birth"
             required
@@ -387,8 +387,8 @@ class Dashboard extends Component {
               onChange={this.onChange}
               >
 
-                <MenuItem value="male">Male</MenuItem>
-                <MenuItem value="female">Female</MenuItem>
+                <MenuItem value="Male">Male</MenuItem>
+                <MenuItem value="Female">Female</MenuItem>
                 </Select>
                 </FormControl>
                 <br></br>
@@ -418,7 +418,7 @@ class Dashboard extends Component {
               Cancel
             </Button>
             <Button
-              disabled={this.state.name == '' || this.state.desg == '' || this.state.mob == '' || this.state.salary == '' || this.state.dateOfBirth == '' || this.state.joiningDate == '' || this.state.gender == ''}
+              disabled={this.state.name == '' || this.state.desg == '' || this.state.mob == '' || this.state.salary == '' || this.state.dob == '' || this.state.joiningDate == '' || this.state.gender == ''}
               onClick={(e) => this.updateProduct()} color="primary" autoFocus>
               Edit Employee
             </Button>
@@ -491,8 +491,8 @@ class Dashboard extends Component {
             id="standard-basic"
             type="date"
             autoComplete="off"
-            name="dateOfBirth"
-            value={this.state.dateOfBirth}
+            name="dob"
+            value={this.state.dob}
             onChange={this.onChange}
             placeholder="Date of Birth"
             required
@@ -508,8 +508,8 @@ class Dashboard extends Component {
               onChange={this.onChange}
               >
 
-                <MenuItem value="male">Development</MenuItem>
-                <MenuItem value="female">Marketing</MenuItem>
+                <MenuItem value="Development">Development</MenuItem>
+                <MenuItem value="Development">Marketing</MenuItem>
                 </Select>
                 </FormControl>
                 <br></br>
@@ -524,23 +524,23 @@ class Dashboard extends Component {
               onChange={this.onChange}
               >
 
-                <MenuItem value="male">Male</MenuItem>
-                <MenuItem value="female">Female</MenuItem>
+                <MenuItem value="Male">Male</MenuItem>
+                <MenuItem value="Female">Female</MenuItem>
                 </Select>
                 </FormControl>
                 <br></br>
                 <FormControl required>
-              <InputLabel id="gender-stat">Status</InputLabel>
+              <InputLabel id="stat-label">Status</InputLabel>
               <Select
-              labelId="gender-stat"
+              labelId="stat-label"
               id="stat"
               name="stat"
               value={this.state.stat}
               onChange={this.onChange}
               >
 
-                <MenuItem value="male">Active</MenuItem>
-                <MenuItem value="female">Inactive</MenuItem>
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
                 </Select>
                 </FormControl>
                 <br></br>
@@ -614,7 +614,7 @@ class Dashboard extends Component {
             </Button>
 
             <Button
-              disabled={this.state.email == '' || this.state.pass == '' || this.state.name == '' || this.state.desg == '' || this.state.joiningDate == '' || this.state.dateOfBirth == '' || this.state.dept == '' || this.state.gender == '' || this.state.gender == '' || this.state.stat == '' || this.state.mob == '' || this.state.pre_addr == '' || this.state.perm_addr == '' || this.state.salary == '' || this.state.file == null}
+              disabled={this.state.email == '' || this.state.pass == '' || this.state.name == '' || this.state.desg == '' || this.state.joiningDate == '' || this.state.dob == '' || this.state.dept == '' || this.state.gender == '' || this.state.gender == '' || this.state.stat == '' || this.state.mob == '' || this.state.pre_addr == '' || this.state.perm_addr == '' || this.state.salary == '' || this.state.file == null}
               onClick={(e) => this.addProduct()} color="primary" autoFocus>
               Add New Employee
             </Button>
@@ -695,7 +695,7 @@ class Dashboard extends Component {
                   <TableCell align="center">{row.pre_addr}</TableCell>
                   <TableCell align="center">{row.perm_addr}</TableCell>
                   <TableCell align="center">{row.gender}</TableCell>
-                  <TableCell align="center">{row.dateOfBirth}</TableCell>
+                  <TableCell align="center">{row.dob}</TableCell>
                   <TableCell align="center">{row.salary}</TableCell>
                   <TableCell align="center">{row.joiningDate}</TableCell>                            
                   <TableCell align="center">

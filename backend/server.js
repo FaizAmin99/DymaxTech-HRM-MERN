@@ -186,14 +186,22 @@ app.post("/add-product", upload.any(), (req, res) => {
       req.body.mob) {
 
       let new_product = new product();
+      new_product.email = req.body.email;
+      new_product.pass = req.body.pass;
       new_product.name = req.body.name;
       new_product.desg = req.body.desg;
+      new_product.joiningDate = req.body.joiningDate;
+      new_product.dob = req.body.dob;
+      new_product.dept = req.body.dept;
+      new_product.gender = req.body.gender;
+      new_product.stat = req.body.stat;
+      new_product.mob = req.body.mob;
+      new_product.pre_addr = req.body.pre_addr;
+      new_product.perm_addr = req.body.perm_addr;
       new_product.salary = req.body.salary;
       new_product.image = req.files[0].filename;
-      new_product.mob = req.body.mob;
-      new_product.joiningDate = req.body.joiningDate;
-      new_product.dateOfBirth = req.body.dateOfBirth;
-      new_product.gender = req.body.gender;
+      
+      
       new_product.user_id = req.user.id;
       new_product.save((err, data) => {
         if (err) {
@@ -226,8 +234,8 @@ app.post("/add-product", upload.any(), (req, res) => {
 /* Api to update Product */
 app.post("/update-product", upload.any(), (req, res) => {
   try {
-    if (req.files && req.body && req.body.name && req.body.desg && req.body.salary &&
-      req.body.id && req.body.mob && req.body.joiningDate && req.body.dateOfBirth && req.body.gender) {
+    if (req.files && req.body && req.body.email && req.body.pass &&req.body.name && req.body.desg && req.body.gender && req.body.joiningDate && req.body.dob && req.body.dept && req.body.stat&& req.body.pre_addr && req.body.perm_addr &&
+      req.body.id && req.body.salary) {
 
       product.findById(req.body.id, (err, new_product) => {
 
@@ -240,27 +248,48 @@ app.post("/update-product", upload.any(), (req, res) => {
         if (req.files && req.files[0] && req.files[0].filename) {
           new_product.image = req.files[0].filename;
         }
+        if (req.body.email) {
+          new_product.email = req.body.email;
+        }
+        if (req.body.pass) {
+          new_product.pass = req.body.pass;
+        }
         if (req.body.name) {
           new_product.name = req.body.name;
         }
         if (req.body.desg) {
           new_product.desg = req.body.desg;
         }
-        if (req.body.salary) {
-          new_product.salary = req.body.salary;
-        }
-        if (req.body.mob) {
-          new_product.mob = req.body.mob;
-        }
         if (req.body.joiningDate) {
           new_product.joiningDate = req.body.joiningDate;
         }
-        if (req.body.dateOfBirth) {
-          new_product.dateOfBirth = req.body.dob;
+        if (req.body.dob) {
+          new_product.dob = req.body.dob;
+        }
+        if (req.body.dept) {
+          new_product.dept = req.body.dept;
         }
         if (req.body.gender) {
           new_product.gender = req.body.gender;
         }
+        if (req.body.stat) {
+          new_product.stat = req.body.stat;
+        }
+        if (req.body.mob) {
+          new_product.mob = req.body.mob;
+        }
+        if (req.body.pre_addr) {
+          new_product.pre_addr = req.body.pre_addr;
+        }
+        if (req.body.perm_addr) {
+          new_product.perm_addr = req.body.perm_addr;
+        }
+        if (req.body.salary) {
+          new_product.salary = req.body.salary;
+        }
+        
+        
+        
 
         new_product.save((err, data) => {
           if (err) {
