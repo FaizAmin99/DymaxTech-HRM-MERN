@@ -183,15 +183,18 @@ function checkUserAndGenerateToken(data, req, res) {
 /* Api to add Product */
 app.post("/add-product", upload.any(), (req, res) => {
   try {
-    if (req.files && req.body && req.body.name && req.body.role && req.body.salary &&
+    if (req.files && req.body && req.body.name && req.body.desg && req.body.salary &&
       req.body.mob) {
 
       let new_product = new product();
       new_product.name = req.body.name;
-      new_product.role = req.body.role;
+      new_product.desg = req.body.desg;
       new_product.salary = req.body.salary;
       new_product.image = req.files[0].filename;
       new_product.mob = req.body.mob;
+      new_product.joiningDate = req.body.joiningDate;
+      new_product.dateOfBirth = req.body.dateOfBirth;
+      new_product.gender = req.body.gender;
       new_product.user_id = req.user.id;
       new_product.save((err, data) => {
         if (err) {
@@ -224,8 +227,8 @@ app.post("/add-product", upload.any(), (req, res) => {
 /* Api to update Product */
 app.post("/update-product", upload.any(), (req, res) => {
   try {
-    if (req.files && req.body && req.body.name && req.body.role && req.body.salary &&
-      req.body.id && req.body.mob) {
+    if (req.files && req.body && req.body.name && req.body.desg && req.body.salary &&
+      req.body.id && req.body.mob && req.body.joiningDate && req.body.dateOfBirth && req.body.gender) {
 
       product.findById(req.body.id, (err, new_product) => {
 
@@ -241,14 +244,23 @@ app.post("/update-product", upload.any(), (req, res) => {
         if (req.body.name) {
           new_product.name = req.body.name;
         }
-        if (req.body.role) {
-          new_product.role = req.body.role;
+        if (req.body.desg) {
+          new_product.desg = req.body.desg;
         }
         if (req.body.salary) {
           new_product.salary = req.body.salary;
         }
         if (req.body.mob) {
           new_product.mob = req.body.mob;
+        }
+        if (req.body.joiningDate) {
+          new_product.joiningDate = req.body.joiningDate;
+        }
+        if (req.body.dateOfBirth) {
+          new_product.dateOfBirth = req.body.dob;
+        }
+        if (req.body.gender) {
+          new_product.gender = req.body.gender;
         }
 
         new_product.save((err, data) => {
@@ -328,7 +340,7 @@ app.get("/get-product", (req, res) => {
     }
     var perPage = 5;
     var page = req.query.page || 1;
-    product.find(query, { date: 1, name: 1, id: 1, role: 1, salary: 1, mob: 1, image: 1 })
+    product.find(query, { date: 1, name: 1, id: 1, desg: 1, salary: 1, mob: 1, joiningDate: 1, dob:1, gender:1, image: 1 })
       .skip((perPage * page) - perPage).limit(perPage)
       .then((data) => {
         product.find(query).count()

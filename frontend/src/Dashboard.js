@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import {
   Button, TextField, Dialog, DialogActions, LinearProgress,
   DialogTitle, DialogContent, TableBody, Table,
-  TableContainer, TableHead, TableRow, TableCell
+  TableContainer, TableHead, TableRow, TableCell, FormControl, InputLabel, Select, MenuItem
 } from '@material-ui/core';
 import { Pagination } from '@material-ui/lab';
 import swal from 'sweetalert';
@@ -17,12 +17,21 @@ class Dashboard extends Component {
       openProductModal: false,
       openProductEditModal: false,
       id: '',
+      email:'',
+      password:'',
       name: '',
-      role: '',
-      salary: '',
+      desg: '',
+      joiningDate:'',
+      dateOfBirth:'',
+      dept:'',
+      gender:'',
+      status:'',
       mob: '',
+      pre_address:'',
+      perm_address:'',
       file: '',
       fileName: '',
+      salary: '',  
       page: 1,
       search: '',
       products: [],
@@ -126,9 +135,12 @@ class Dashboard extends Component {
     const file = new FormData();
     file.append('file', fileInput.files[0]);
     file.append('name', this.state.name);
-    file.append('role', this.state.role);
+    file.append('desg', this.state.desg);
     file.append('mob', this.state.mob);
     file.append('salary', this.state.salary);
+    file.append('joiningDate', this.state.joiningDate);
+    file.append('dateOfBirth', this.state.dateOfBirth);
+    file.append('gender', this.state.gender);
 
     axios.post('http://localhost:2000/add-product', file, {
       headers: {
@@ -144,7 +156,7 @@ class Dashboard extends Component {
       });
 
       this.handleProductClose();
-      this.setState({ name: '', role: '', mob: '', salary: '', file: null, page: 1 }, () => {
+      this.setState({ name: '', desg: '', mob: '', salary: '',joiningDate:'', dateOfBirth:'',gender:'', file: null, page: 1 }, () => {
         this.getProduct();
       });
     }).catch((err) => {
@@ -164,9 +176,12 @@ class Dashboard extends Component {
     file.append('id', this.state.id);
     file.append('file', fileInput.files[0]);
     file.append('name', this.state.name);
-    file.append('role', this.state.role);
+    file.append('desg', this.state.desg);
     file.append('mob', this.state.mob);
     file.append('salary', this.state.salary);
+    file.append('joiningDate', this.state.joiningDate);
+    file.append('dateOfBirth',this.state.dateOfBirth);
+    file.append('gender', this.state.gender);
 
     axios.post('http://localhost:2000/update-product', file, {
       headers: {
@@ -182,7 +197,7 @@ class Dashboard extends Component {
       });
 
       this.handleProductEditClose();
-      this.setState({ name: '', role: '', mob: '', salary: '', file: null }, () => {
+      this.setState({ name: '', desg: '', mob: '', salary: '', joiningDate:'', dateOfBirth: '', gender: '', file: null }, () => {
         this.getProduct();
       });
     }).catch((err) => {
@@ -201,10 +216,13 @@ class Dashboard extends Component {
       openProductModal: true,
       id: '',
       name: '',
-      role: '',
+      desg: '',
       salary: '',
       mob: '',
-      fileName: ''
+      fileName: '',
+      joiningDate: '',
+      dateOfBirth: '',
+      gender: ''
     });
   };
 
@@ -217,9 +235,12 @@ class Dashboard extends Component {
       openProductEditModal: true,
       id: data._id,
       name: data.name,
-      role: data.role,
+      desg: data.desg,
       salary: data.salary,
       mob: data.mob,
+      joiningDate: data.joiningDate,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
       fileName: data.image
     });
   };
@@ -277,10 +298,10 @@ class Dashboard extends Component {
               id="standard-basic"
               type="text"
               autoComplete="off"
-              name="role"
-              value={this.state.role}
+              name="desg"
+              value={this.state.desg}
               onChange={this.onChange}
-              placeholder="Role"
+              placeholder="Designation"
               required
             /><br />
             <TextField
@@ -302,7 +323,45 @@ class Dashboard extends Component {
               onChange={this.onChange}
               placeholder="Mobile no."
               required
-            /><br /><br />
+            /><br />
+            <TextField
+            id="standard-basic"
+            type="date"
+            autoComplete="off"
+            name="joiningDate"
+            value={this.state.joiningDate}
+            onChange={this.onChange}
+            placeholder="Joining Date"
+            required
+            /><br />
+            <TextField
+            id="standard-basic"
+            type="date"
+            autoComplete="off"
+            name="dateOfBirth"
+            value={this.state.dateOfBirth}
+            onChange={this.onChange}
+            placeholder="Date of Birth"
+            required
+            /><br />
+            <FormControl required>
+              <InputLabel id="gender-label">Gender</InputLabel>
+              <Select
+              labelId="gender-label"
+              id="gender"
+              name="gender"
+              value={this.state.gender}
+              onChange={this.onChange}
+              >
+
+                <MenuItem value="male">Male</MenuItem>
+                <MenuItem value="female">Female</MenuItem>
+                </Select>
+                </FormControl>
+                <br></br>
+                    
+            <br /><br />
+            
             <Button
               variant="contained"
               component="label"
@@ -326,7 +385,7 @@ class Dashboard extends Component {
               Cancel
             </Button>
             <Button
-              disabled={this.state.name == '' || this.state.role == '' || this.state.mob == '' || this.state.salary == ''}
+              disabled={this.state.name == '' || this.state.desg == '' || this.state.mob == '' || this.state.salary == '' || this.state.dateOfBirth == '' || this.state.joiningDate == '' || this.state.gender == ''}
               onClick={(e) => this.updateProduct()} color="primary" autoFocus>
               Edit Employee
             </Button>
@@ -356,10 +415,10 @@ class Dashboard extends Component {
               id="standard-basic"
               type="text"
               autoComplete="off"
-              name="role"
-              value={this.state.role}
+              name="desg"
+              value={this.state.desg}
               onChange={this.onChange}
-              placeholder="Role"
+              placeholder="Designation"
               required
             /><br />
             <TextField
@@ -381,7 +440,43 @@ class Dashboard extends Component {
               onChange={this.onChange}
               placeholder="Mobile no."
               required
-            /><br /><br />
+            /><br />
+            <TextField
+            id="standard-basic"
+            type="date"
+            autoComplete="off"
+            name="joiningDate"
+            value={this.state.joiningDate}
+            onChange={this.onChange}
+            placeholder="Joining Date"
+            required
+            /><br />
+            <TextField
+            id="standard-basic"
+            type="date"
+            autoComplete="off"
+            name="dateOfBirth"
+            value={this.state.dateOfBirth}
+            onChange={this.onChange}
+            placeholder="Date of Birth"
+            required
+            /><br />
+            <FormControl required>
+              <InputLabel id="gender-label">Gender</InputLabel>
+              <Select
+              labelId="gender-label"
+              id="gender"
+              name="gender"
+              value={this.state.gender}
+              onChange={this.onChange}
+              >
+
+                <MenuItem value="male">Male</MenuItem>
+                <MenuItem value="female">Female</MenuItem>
+                </Select>
+                </FormControl>
+                <br></br>
+                <br></br>
             <Button
               variant="contained"
               component="label"
@@ -405,11 +500,37 @@ class Dashboard extends Component {
             <Button onClick={this.handleProductClose} color="primary">
               Cancel
             </Button>
+
             <Button
-              disabled={this.state.name == '' || this.state.role == '' || this.state.mob == '' || this.state.salary == '' || this.state.file == null}
+              disabled={this.state.name == '' || this.state.desg == '' || this.state.mob == '' || this.state.salary == '' || this.state.dateOfBirth == '' || this.state.joiningDate == '' || this.state.gender == '' || this.state.file == null}
               onClick={(e) => this.addProduct()} color="primary" autoFocus>
-              Add Employee
+              Add New Employee
             </Button>
+
+            {/*<Button
+  className="button_style"
+  variant="contained"
+  color="primary"
+  size="small"
+
+  disabled={
+    this.state.name === '' ||
+    this.state.role === '' ||
+    this.state.mob === '' ||
+    this.state.salary === '' ||
+    this.state.joiningDate === '' ||
+    this.state.dateOfBirth === '' ||
+    this.state.gender === '' ||
+    this.state.file === null
+  }
+
+  onClick={(e) => this.addProduct()}
+>
+  Add Employee Data 
+</Button>
+
+
+*/}
           </DialogActions>
         </Dialog>
 
@@ -431,9 +552,12 @@ class Dashboard extends Component {
               <TableRow>
                 <TableCell align="center">Name</TableCell>
                 <TableCell align="center">Photograph</TableCell>
-                <TableCell align="center">Role</TableCell>
+                <TableCell align="center">Designation</TableCell>
                 <TableCell align="center">Salary</TableCell>
                 <TableCell align="center">Mobile no.</TableCell>
+                <TableCell align="center">Joining Date</TableCell>
+                <TableCell align="center">Date of Birth</TableCell>
+                <TableCell align="center">Gender</TableCell>
                 <TableCell align="center">Action</TableCell>
               </TableRow>
             </TableHead>
@@ -444,9 +568,12 @@ class Dashboard extends Component {
                     {row.name}
                   </TableCell>
                   <TableCell align="center"><img src={`http://localhost:2000/${row.image}`} width="70" height="70" /></TableCell>
-                  <TableCell align="center">{row.role}</TableCell>
+                  <TableCell align="center">{row.desg}</TableCell>
                   <TableCell align="center">{row.salary}</TableCell>
                   <TableCell align="center">{row.mob}</TableCell>
+                  <TableCell align="center">{row.joiningDate}</TableCell>
+                  <TableCell align="center">{row.dateOfBirth}</TableCell>
+                  <TableCell align="center">{row.gender}</TableCell>
                   <TableCell align="center">
                     <Button
                       className="button_style"
@@ -482,12 +609,3 @@ class Dashboard extends Component {
 
 
 export default withRouter(Dashboard);
-
-
-
-
-
-
-
-
-
