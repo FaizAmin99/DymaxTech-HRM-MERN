@@ -25,7 +25,7 @@ class Dashboard extends Component {
       dateOfBirth:'',
       dept:'',
       gender:'',
-      status:'',
+      stat:'',
       mob: '',
       pre_address:'',
       perm_address:'',
@@ -134,13 +134,20 @@ class Dashboard extends Component {
     const fileInput = document.querySelector("#fileInput");
     const file = new FormData();
     file.append('file', fileInput.files[0]);
+    file.append('email', this.state.email);
+    file.append('pass', this.state.pass);    
     file.append('name', this.state.name);
     file.append('desg', this.state.desg);
-    file.append('mob', this.state.mob);
-    file.append('salary', this.state.salary);
     file.append('joiningDate', this.state.joiningDate);
     file.append('dateOfBirth', this.state.dateOfBirth);
+    file.append('dept', this.state.dept);
     file.append('gender', this.state.gender);
+    file.append('stat', this.state.stat);
+    file.append('mob', this.state.mob);
+    file.append('pre_addr', this.state.pre_addr);
+    file.append('perm_addr', this.state.perm_addr);
+    file.append('salary', this.state.salary);
+
 
     axios.post('http://localhost:2000/add-product', file, {
       headers: {
@@ -156,7 +163,7 @@ class Dashboard extends Component {
       });
 
       this.handleProductClose();
-      this.setState({ name: '', desg: '', mob: '', salary: '',joiningDate:'', dateOfBirth:'',gender:'', file: null, page: 1 }, () => {
+      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dateOfBirth:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', file: null, page: 1 }, () => {
         this.getProduct();
       });
     }).catch((err) => {
@@ -175,13 +182,19 @@ class Dashboard extends Component {
     const file = new FormData();
     file.append('id', this.state.id);
     file.append('file', fileInput.files[0]);
+    file.append('email', this.state.email);
+    file.append('pass', this.state.pass);    
     file.append('name', this.state.name);
     file.append('desg', this.state.desg);
-    file.append('mob', this.state.mob);
-    file.append('salary', this.state.salary);
     file.append('joiningDate', this.state.joiningDate);
-    file.append('dateOfBirth',this.state.dateOfBirth);
+    file.append('dateOfBirth', this.state.dateOfBirth);
+    file.append('dept', this.state.dept);
     file.append('gender', this.state.gender);
+    file.append('stat', this.state.stat);
+    file.append('mob', this.state.mob);
+    file.append('gender', this.state.pre_addr);
+    file.append('gender', this.state.perm_addr);
+    file.append('salary', this.state.salary);
 
     axios.post('http://localhost:2000/update-product', file, {
       headers: {
@@ -197,8 +210,9 @@ class Dashboard extends Component {
       });
 
       this.handleProductEditClose();
-      this.setState({ name: '', desg: '', mob: '', salary: '', joiningDate:'', dateOfBirth: '', gender: '', file: null }, () => {
-        this.getProduct();
+      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dateOfBirth:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', file: null }, () => {
+       
+       this.getProduct();
       });
     }).catch((err) => {
       swal({
@@ -215,14 +229,26 @@ class Dashboard extends Component {
     this.setState({
       openProductModal: true,
       id: '',
+      email:'',
+      password:'',
       name: '',
       desg: '',
-      salary: '',
+      joiningDate:'',
+      dateOfBirth:'',
+      dept:'',
+      gender:'',
+      stat:'',
       mob: '',
+      pre_address:'',
+      perm_address:'',
+      file: '',
       fileName: '',
-      joiningDate: '',
-      dateOfBirth: '',
-      gender: ''
+      salary: '',  
+      page: 1,
+      search: '',
+      products: [],
+      pages: 0,
+      loading: false
     });
   };
 
@@ -234,13 +260,20 @@ class Dashboard extends Component {
     this.setState({
       openProductEditModal: true,
       id: data._id,
+      email: data.email,
+      pass: data.pass,
       name: data.name,
       desg: data.desg,
-      salary: data.salary,
-      mob: data.mob,
       joiningDate: data.joiningDate,
       dateOfBirth: data.dateOfBirth,
+      dept: data.dept,
       gender: data.gender,
+      stat: data.stat,
+      mob: data.mob,
+      pre_addr: data.pre_addr,
+      perm_addr: data.perm_addr,
+      salary: data.salary,
+      
       fileName: data.image
     });
   };
@@ -401,6 +434,29 @@ class Dashboard extends Component {
         >
           <DialogTitle id="alert-dialog-title">Add Employee</DialogTitle>
           <DialogContent>
+
+          <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="email"
+              value={this.state.email}
+              onChange={this.onChange}
+              placeholder="Employee Email"
+              required
+            /><br />
+
+              <TextField
+              id="standard-basic"
+              type="password"
+              autoComplete="off"
+              name="pass"
+              value={this.state.pass}
+              onChange={this.onChange}
+              placeholder="Employee Password"
+              required
+            /><br />
+
             <TextField
               id="standard-basic"
               type="text"
@@ -419,26 +475,6 @@ class Dashboard extends Component {
               value={this.state.desg}
               onChange={this.onChange}
               placeholder="Designation"
-              required
-            /><br />
-            <TextField
-              id="standard-basic"
-              type="number"
-              autoComplete="off"
-              name="salary"
-              value={this.state.salary}
-              onChange={this.onChange}
-              placeholder="Salary"
-              required
-            /><br />
-            <TextField
-              id="standard-basic"
-              type="number"
-              autoComplete="off"
-              name="mob"
-              value={this.state.mob}
-              onChange={this.onChange}
-              placeholder="Mobile no."
               required
             /><br />
             <TextField
@@ -461,7 +497,24 @@ class Dashboard extends Component {
             placeholder="Date of Birth"
             required
             /><br />
-            <FormControl required>
+
+              <FormControl required>
+              <InputLabel id="dept-label">Department</InputLabel>
+              <Select
+              labelId="dept-label"
+              id="dept"
+              name="dept"
+              value={this.state.dept}
+              onChange={this.onChange}
+              >
+
+                <MenuItem value="male">Development</MenuItem>
+                <MenuItem value="female">Marketing</MenuItem>
+                </Select>
+                </FormControl>
+                <br></br>
+
+                <FormControl required>
               <InputLabel id="gender-label">Gender</InputLabel>
               <Select
               labelId="gender-label"
@@ -476,6 +529,65 @@ class Dashboard extends Component {
                 </Select>
                 </FormControl>
                 <br></br>
+                <FormControl required>
+              <InputLabel id="gender-stat">Status</InputLabel>
+              <Select
+              labelId="gender-stat"
+              id="stat"
+              name="stat"
+              value={this.state.stat}
+              onChange={this.onChange}
+              >
+
+                <MenuItem value="male">Active</MenuItem>
+                <MenuItem value="female">Inactive</MenuItem>
+                </Select>
+                </FormControl>
+                <br></br>
+                <TextField
+              id="standard-basic"
+              type="number"
+              autoComplete="off"
+              name="mob"
+              value={this.state.mob}
+              onChange={this.onChange}
+              placeholder="Mobile no."
+              required
+            /><br />
+            <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="pre_addr"
+              value={this.state.pre_addr}
+              onChange={this.onChange}
+              placeholder="Present Address"
+              required
+            /><br />
+            
+            <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="perm_addr"
+              value={this.state.perm_addr}
+              onChange={this.onChange}
+              placeholder="Permenant Address"
+              required
+            /><br />
+
+            <TextField
+              id="standard-basic"
+              type="number"
+              autoComplete="off"
+              name="salary"
+              value={this.state.salary}
+              onChange={this.onChange}
+              placeholder="Salary"
+              required
+            /><br />
+           
+            
                 <br></br>
             <Button
               variant="contained"
@@ -502,7 +614,7 @@ class Dashboard extends Component {
             </Button>
 
             <Button
-              disabled={this.state.name == '' || this.state.desg == '' || this.state.mob == '' || this.state.salary == '' || this.state.dateOfBirth == '' || this.state.joiningDate == '' || this.state.gender == '' || this.state.file == null}
+              disabled={this.state.email == '' || this.state.pass == '' || this.state.name == '' || this.state.desg == '' || this.state.joiningDate == '' || this.state.dateOfBirth == '' || this.state.dept == '' || this.state.gender == '' || this.state.gender == '' || this.state.stat == '' || this.state.mob == '' || this.state.pre_addr == '' || this.state.perm_addr == '' || this.state.salary == '' || this.state.file == null}
               onClick={(e) => this.addProduct()} color="primary" autoFocus>
               Add New Employee
             </Button>
@@ -550,30 +662,42 @@ class Dashboard extends Component {
           <Table aria-label="simple table">
             <TableHead>
               <TableRow>
-                <TableCell align="center">Name</TableCell>
-                <TableCell align="center">Photograph</TableCell>
-                <TableCell align="center">Designation</TableCell>
-                <TableCell align="center">Salary</TableCell>
-                <TableCell align="center">Mobile no.</TableCell>
-                <TableCell align="center">Joining Date</TableCell>
-                <TableCell align="center">Date of Birth</TableCell>
-                <TableCell align="center">Gender</TableCell>
-                <TableCell align="center">Action</TableCell>
+                <TableCell align="center"><b>Photograph</b></TableCell>
+                <TableCell align="center"><b>Name</b></TableCell>
+                <TableCell align="center"><b>Designation</b></TableCell>
+                <TableCell align="center"><b>Department</b></TableCell>
+                <TableCell align="center"><b>Email</b></TableCell>
+                <TableCell align="center"><b>Password</b></TableCell>
+                <TableCell align="center"><b>Mobile no.</b></TableCell>
+                <TableCell align="center"><b>Present Address</b></TableCell>
+                <TableCell align="center"><b>Permenant Address</b></TableCell>
+                <TableCell align="center"><b>Gender</b></TableCell>
+                <TableCell align="center"><b>Date of Birth</b></TableCell>
+                <TableCell align="center"><b>Salary</b></TableCell>
+                <TableCell align="center"><b>Joining Date</b></TableCell>
+                <TableCell align="center"><b>Status</b></TableCell>
               </TableRow>
             </TableHead>
+
+
             <TableBody>
               {this.state.products.map((row) => (
                 <TableRow key={row.name}>
-                  <TableCell align="center" component="th" scope="row">
-                    {row.name}
-                  </TableCell>
                   <TableCell align="center"><img src={`http://localhost:2000/${row.image}`} width="70" height="70" /></TableCell>
+                  <TableCell align="center" component="th" scope="row">
+                    {<i>{row.name}</i>}
+                  </TableCell>
                   <TableCell align="center">{row.desg}</TableCell>
-                  <TableCell align="center">{row.salary}</TableCell>
+                  <TableCell align="center">{row.dept}</TableCell>
+                  <TableCell align="center">{row.email}</TableCell>
+                  <TableCell align="center">{row.pass}</TableCell>
                   <TableCell align="center">{row.mob}</TableCell>
-                  <TableCell align="center">{row.joiningDate}</TableCell>
-                  <TableCell align="center">{row.dateOfBirth}</TableCell>
+                  <TableCell align="center">{row.pre_addr}</TableCell>
+                  <TableCell align="center">{row.perm_addr}</TableCell>
                   <TableCell align="center">{row.gender}</TableCell>
+                  <TableCell align="center">{row.dateOfBirth}</TableCell>
+                  <TableCell align="center">{row.salary}</TableCell>
+                  <TableCell align="center">{row.joiningDate}</TableCell>                            
                   <TableCell align="center">
                     <Button
                       className="button_style"
@@ -582,7 +706,7 @@ class Dashboard extends Component {
                       size="small"
                       onClick={(e) => this.handleProductEditOpen(row)}
                     >
-                      Edit
+                      Active
                   </Button>
                     <Button
                       className="button_style"
@@ -591,7 +715,7 @@ class Dashboard extends Component {
                       size="small"
                       onClick={(e) => this.deleteProduct(row._id)}
                     >
-                      Delete
+                      Inactive
                   </Button>
                   </TableCell>
                 </TableRow>

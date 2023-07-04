@@ -2,11 +2,20 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 productSchema = new Schema( {
+	email:String,
+	pass:String,
 	name: String,
-	role: String,
+	desg: String,
+	joiningDate:Date,
+	dob:Date,
+	dept:String,
+	gender:String,
+	stat:String,
+	mob: Number,
+	pre_addr:String,
+	perm_addr:String,
 	salary: Number,
 	image: String,
-	mob: Number,
 	user_id: Schema.ObjectId,
 	is_delete: { type: Boolean, default: false },
 	date : { type : Date, default: Date.now }
