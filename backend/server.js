@@ -13,7 +13,33 @@ var product = require("./model/employee.js");
 var user = require("./model/user.js");
 
 var dir = './uploads';
+
+//Importing the model
+const Timestamp = require('./model/timestamp');
+
+//Configuring the middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:false}))
+
+//Defining route to save the timestamp
+app.post('/api/save-timestamp', (req,res) => {
+  const { timestamp } = req.body;
+
+  Timestamp.create({ timestamp }, (error, createdTimestamp) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to save timestamp' });
+      }
+
+    else {
+      res.status(200).json({ sucess: true, timestamp: createdTimestamp });
+    }
+  });
+});
+
+
+
 var upload = multer({
+  
   storage: multer.diskStorage({
 
     destination: function (req, file, callback) {

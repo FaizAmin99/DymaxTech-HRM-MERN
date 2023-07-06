@@ -11,7 +11,29 @@ import { format } from 'date-fns';
 
 const axios = require('axios');
 
+
+
+
+
+
 class Dashboard extends Component {
+
+  handleTimePunchIn = () => {
+    const timestamp = new Date();
+  
+    axios
+      .post('http://localhost:2000/api/save-timestamp', { timestamp })
+      .then((response) => {
+        console.log('Timestamp saved successfully:', response.data);
+        // Perform any additional actions upon successful save
+      })
+      .catch((error) => {
+        console.error('Error saving timestamp:', error);
+        // Handle the error if needed
+      });
+  };
+
+
   constructor() {
     super();
     this.state = {
@@ -305,41 +327,9 @@ class Dashboard extends Component {
     return (
       <div>
 
-
-{
-  this.state.showWelcomeCard && (
-    <div className="welcome-card">
-      <h3>Welcome User!</h3>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => {
-          // Handle time punch in button click here
-        }}
-      >
-        Time Punch IN
+<Button variant="contained" color="primary" onClick={this.handleTimePunchIn}>
+        Time Punch In
       </Button>
-      
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={() => {
-          this.setState({ showWelcomeCard: false });
-        }}
-      >
-        Close
-      </Button>
-    </div>
-  )
-}
-
-
-
-
-
-
-
-
 
 
 
