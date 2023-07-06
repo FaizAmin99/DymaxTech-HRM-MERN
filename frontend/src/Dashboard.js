@@ -7,6 +7,8 @@ import {
 import { Pagination } from '@material-ui/lab';
 import swal from 'sweetalert';
 import { withRouter } from './utils';
+import { format } from 'date-fns';
+
 const axios = require('axios');
 
 class Dashboard extends Component {
@@ -18,7 +20,7 @@ class Dashboard extends Component {
       openProductEditModal: false,
       id: '',
       email:'',
-      password:'',
+      pass:'',
       name: '',
       desg: '',
       joiningDate:'',
@@ -32,12 +34,17 @@ class Dashboard extends Component {
       file: '',
       fileName: '',
       salary: '',  
+      cv_link: '',
+      emer_name: '',
+      emer_mob: '',
       page: 1,
       search: '',
       products: [],
       pages: 0,
-      loading: false
+      loading: false,
 
+      showWelcomeCard: true,
+      //username: ''
     };
   }
 
@@ -147,6 +154,9 @@ class Dashboard extends Component {
     file.append('pre_addr', this.state.pre_addr);
     file.append('perm_addr', this.state.perm_addr);
     file.append('salary', this.state.salary);
+    file.append('cv_link', this.state.cv_link);
+    file.append('emer_name', this.state.emer_name);
+    file.append('emer_mob', this.state.emer_mob);
 
 
     axios.post('http://localhost:2000/add-product', file, {
@@ -163,7 +173,7 @@ class Dashboard extends Component {
       });
 
       this.handleProductClose();
-      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dob:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', file: null, page: 1 }, () => {
+      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dob:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', cv_link: '', emer_name: '', emer_mob: '', file: null, page: 1 }, () => {
         this.getProduct();
       });
     }).catch((err) => {
@@ -195,6 +205,9 @@ class Dashboard extends Component {
     file.append('pre_addr', this.state.pre_addr);
     file.append('perm_addr', this.state.perm_addr);
     file.append('salary', this.state.salary);
+    file.append('emer_name', this.state.emer_name);
+    file.append('emer_mob', this.state.emer_mob);
+    file.append('cv_link', this.state.cv_link);
 
     axios.post('http://localhost:2000/update-product', file, {
       headers: {
@@ -210,7 +223,7 @@ class Dashboard extends Component {
       });
 
       this.handleProductEditClose();
-      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dob:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', file: null }, () => {
+      this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dob:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', cv_link: '', emer_name: '', emer_mob: '', file: null }, () => {
        
        this.getProduct();
       });
@@ -230,7 +243,7 @@ class Dashboard extends Component {
       openProductModal: true,
       id: '',
       email:'',
-      password:'',
+      pass:'',
       name: '',
       desg: '',
       joiningDate:'',
@@ -243,7 +256,10 @@ class Dashboard extends Component {
       perm_addr:'',
       file: '',
       fileName: '',
-      salary: '',  
+      salary: '', 
+      emer_name:'',
+      emer_mob:'',
+      cv_link: '', 
       page: 1,
       search: '',
       products: [],
@@ -273,6 +289,9 @@ class Dashboard extends Component {
       pre_addr: data.pre_addr,
       perm_addr: data.perm_addr,
       salary: data.salary,
+      emer_name: data.emer_name,
+      emer_mob: data.emer_mob,
+      cv_link: data.cv_link,
       
       fileName: data.image
     });
@@ -285,6 +304,45 @@ class Dashboard extends Component {
  render() {
     return (
       <div>
+
+
+{
+  this.state.showWelcomeCard && (
+    <div className="welcome-card">
+      <h3>Welcome User!</h3>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => {
+          // Handle time punch in button click here
+        }}
+      >
+        Time Punch IN
+      </Button>
+      
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={() => {
+          this.setState({ showWelcomeCard: false });
+        }}
+      >
+        Close
+      </Button>
+    </div>
+  )
+}
+
+
+
+
+
+
+
+
+
+
+
         {this.state.loading && <LinearProgress size={40} />}
         <div>
           <h2>Dashboard</h2>
@@ -376,6 +434,7 @@ class Dashboard extends Component {
             onChange={this.onChange}
             placeholder="Date of Birth"
             required
+            
             /><br />
             <FormControl required>
               <InputLabel id="gender-label">Gender</InputLabel>
@@ -418,7 +477,7 @@ class Dashboard extends Component {
               Cancel
             </Button>
             <Button
-              disabled={this.state.name == '' || this.state.desg == '' || this.state.mob == '' || this.state.salary == '' || this.state.dob == '' || this.state.joiningDate == '' || this.state.gender == ''}
+              disabled={this.state.name == '' || this.state.desg == '' || this.state.mob == '' || this.state.salary == '' || this.state.dob == '' || this.state.joiningDate == '' || this.state.gender == '' || this.emer_mob || this.emer_name }
               onClick={(e) => this.updateProduct()} color="primary" autoFocus>
               Edit Employee
             </Button>
@@ -476,27 +535,33 @@ class Dashboard extends Component {
               onChange={this.onChange}
               placeholder="Designation"
               required
-            /><br />
-            <TextField
+            /><br /><br />
+             <TextField
             id="standard-basic"
             type="date"
             autoComplete="off"
             name="joiningDate"
             value={this.state.joiningDate}
             onChange={this.onChange}
-            placeholder="Joining Date"
+            label="Joining Date"
             required
-            /><br />
-            <TextField
+            InputLabelProps={{
+              shrink: true,
+            }}
+          /><br /><br />
+             <TextField
             id="standard-basic"
             type="date"
             autoComplete="off"
             name="dob"
             value={this.state.dob}
             onChange={this.onChange}
-            placeholder="Date of Birth"
+            label="Date of Birth"
             required
-            /><br />
+            InputLabelProps={{
+              shrink: true,
+            }}
+          /><br />
 
               <FormControl required>
               <InputLabel id="dept-label">Department</InputLabel>
@@ -509,7 +574,8 @@ class Dashboard extends Component {
               >
 
                 <MenuItem value="Development">Development</MenuItem>
-                <MenuItem value="Development">Marketing</MenuItem>
+                <MenuItem value="Marketing">Marketing</MenuItem>
+                <MenuItem value="Management">Management</MenuItem>
                 </Select>
                 </FormControl>
                 <br></br>
@@ -586,8 +652,39 @@ class Dashboard extends Component {
               placeholder="Salary"
               required
             /><br />
+
+            <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="emer_name"
+              value={this.state.emer_name}
+              onChange={this.onChange}
+              placeholder="Emergency Contact Name"
+              required
+            /><br />
+
+<TextField
+              id="standard-basic"
+              type="number"
+              autoComplete="off"
+              name="emer_mob"
+              value={this.state.emer_mob}
+              onChange={this.onChange}
+              placeholder="Emergency Contact Mobile no."
+              required
+            /><br />
            
-            
+           <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="cv_link"
+              value={this.state.cv_link}
+              onChange={this.onChange}
+              placeholder="Link of Resume/CV"
+              required
+            /><br />
                 <br></br>
             <Button
               variant="contained"
@@ -614,7 +711,7 @@ class Dashboard extends Component {
             </Button>
 
             <Button
-              disabled={this.state.email == '' || this.state.pass == '' || this.state.name == '' || this.state.desg == '' || this.state.joiningDate == '' || this.state.dob == '' || this.state.dept == '' || this.state.gender == '' || this.state.gender == '' || this.state.stat == '' || this.state.mob == '' || this.state.pre_addr == '' || this.state.perm_addr == '' || this.state.salary == '' || this.state.file == null}
+              disabled={this.state.email == '' || this.state.pass == '' || this.state.name == '' || this.state.desg == '' || this.state.joiningDate == '' || this.state.dob == '' || this.state.dept == '' || this.state.gender == '' || this.state.gender == '' || this.state.stat == '' || this.state.mob == '' || this.state.pre_addr == '' || this.state.perm_addr == '' || this.state.salary == '' || this.state.cv_link == '' || this.state.emer_mob == '' || this.state.emer_name == '' || this.state.file == null}
               onClick={(e) => this.addProduct()} color="primary" autoFocus>
               Add New Employee
             </Button>
@@ -675,6 +772,9 @@ class Dashboard extends Component {
                 <TableCell align="center"><b>Date of Birth</b></TableCell>
                 <TableCell align="center"><b>Salary</b></TableCell>
                 <TableCell align="center"><b>Joining Date</b></TableCell>
+                <TableCell align="center"><b>Emergency Contact Name</b></TableCell>
+                <TableCell align="center"><b>Emergency Contact Number</b></TableCell>
+                <TableCell align="center"><b>Link for Resume/CV</b></TableCell>
                 <TableCell align="center"><b>Status</b></TableCell>
               </TableRow>
             </TableHead>
@@ -695,9 +795,12 @@ class Dashboard extends Component {
                   <TableCell align="center">{row.pre_addr}</TableCell>
                   <TableCell align="center">{row.perm_addr}</TableCell>
                   <TableCell align="center">{row.gender}</TableCell>
-                  <TableCell align="center">{row.dob}</TableCell>
-                  <TableCell align="center">{row.salary}</TableCell>
-                  <TableCell align="center">{row.joiningDate}</TableCell>                            
+                  <TableCell>{format(new Date(row.dob), 'dd/MM/yyyy')}</TableCell>  
+                  <TableCell align="center">Rs. {row.salary}/=</TableCell>
+                  <TableCell>{format(new Date(row.joiningDate), 'dd/MM/yyyy')}</TableCell>  
+                  <TableCell align="center">{row.emer_name}</TableCell>
+                  <TableCell align="center">{row.emer_mob}</TableCell>
+                  <TableCell><a href={row.cv_link} target="_blank" rel="noopener noreferrer">CV/Resume</a></TableCell>
                   <TableCell align="center">
                     <Button
                       className="button_style"
@@ -706,7 +809,7 @@ class Dashboard extends Component {
                       size="small"
                       onClick={(e) => this.handleProductEditOpen(row)}
                     >
-                      Active
+                      EDIT
                   </Button>
                     <Button
                       className="button_style"

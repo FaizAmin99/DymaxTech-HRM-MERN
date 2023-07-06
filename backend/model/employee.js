@@ -16,10 +16,14 @@ productSchema = new Schema( {
 	perm_addr:String,
 	salary: Number,
 	image: String,
+	emer_name: String,
+	emer_mob: Number,
+	cv_link: String,
 	user_id: Schema.ObjectId,
 	is_delete: { type: Boolean, default: false },
-	date : { type : Date, default: Date.now }
+	//date : { type : Date, default: Date.now }
 }),
+
 product = mongoose.model('employees', productSchema);
 
 module.exports = product;

@@ -183,7 +183,7 @@ function checkUserAndGenerateToken(data, req, res) {
 app.post("/add-product", upload.any(), (req, res) => {
   try {
     if (req.files && req.body && req.body.name && req.body.desg && req.body.salary &&
-      req.body.mob) {
+      req.body.mob && req.body.emer_name && req.body.emer_mob) {
 
       let new_product = new product();
       new_product.email = req.body.email;
@@ -199,6 +199,9 @@ app.post("/add-product", upload.any(), (req, res) => {
       new_product.pre_addr = req.body.pre_addr;
       new_product.perm_addr = req.body.perm_addr;
       new_product.salary = req.body.salary;
+      new_product.cv_link = req.body.cv_link;
+      new_product.emer_name = req.body.emer_name;
+      new_product.emer_mob = req.body.emer_mob;
       new_product.image = req.files[0].filename;
       
       
@@ -235,7 +238,7 @@ app.post("/add-product", upload.any(), (req, res) => {
 app.post("/update-product", upload.any(), (req, res) => {
   try {
     if (req.files && req.body && req.body.email && req.body.pass &&req.body.name && req.body.desg && req.body.gender && req.body.joiningDate && req.body.dob && req.body.dept && req.body.stat&& req.body.pre_addr && req.body.perm_addr &&
-      req.body.id && req.body.salary) {
+      req.body.id && req.body.salary && req.body.cv_link && req.body.emer_name && req.emer_mob) {
 
       product.findById(req.body.id, (err, new_product) => {
 
@@ -286,6 +289,15 @@ app.post("/update-product", upload.any(), (req, res) => {
         }
         if (req.body.salary) {
           new_product.salary = req.body.salary;
+        }
+        if(req.body.cv_link) {
+          new_product.cv_link = req.cv_link;
+        }
+        if(req.bofy.emer_name){
+          new_product.emer_name = req.emer_name;
+        }
+        if(req.bofy.emer_mob){
+          new_product.emer_mob = req.emer_mob;
         }
         
         
@@ -368,7 +380,7 @@ app.get("/get-product", (req, res) => {
     }
     var perPage = 5;
     var page = req.query.page || 1;
-    product.find(query, { date: 1, name: 1, id: 1, desg: 1, salary: 1, mob: 1, joiningDate: 1, dob:1, gender:1, image: 1 })
+    product.find(query, { date: 1, name: 1, id: 1, desg: 1, salary: 1, mob: 1, joiningDate: 1, dob:1, gender:1, dept:1, email:1, pass:1, pre_addr:1, perm_addr:1, cv_link:1, image: 1, emer_name:1, emer_mob:1 })
       .skip((perPage * page) - perPage).limit(perPage)
       .then((data) => {
         product.find(query).count()
