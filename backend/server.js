@@ -11,6 +11,9 @@ mongoose.connect("mongodb+srv://faiz123:faiz123@clusterfaiz.qupdcy6.mongodb.net/
 var fs = require('fs');
 var product = require("./model/employee.js");
 var user = require("./model/user.js");
+var moment = require('moment-timezone');
+var cors = require('cors');
+
 
 var dir = './uploads';
 
@@ -23,7 +26,7 @@ app.use(bodyParser.urlencoded({extended:false}))
 
 //Defining route to save the timestamp
 app.post('/api/save-timestamp', (req,res) => {
-  const { timestamp } = req.body;
+  /*const { timestamp } = req.body;
 
   Timestamp.create({ timestamp }, (error, createdTimestamp) => {
     if (error) {
@@ -33,9 +36,48 @@ app.post('/api/save-timestamp', (req,res) => {
     else {
       res.status(200).json({ sucess: true, timestamp: createdTimestamp });
     }
-  });
-});
+    try{
+    var timestamp = moment().tz('Asia/Karachi').format('YYYY-MM-DD HH:mm:ss');
+    // Save the timestamp to the database or perform any other necessary actions
+    console.log('Timestamp:', timestamp);
+    res.status(200).send('Timestamp saved successfully.');
+  } catch (err) {
+    console.error('Error saving timestamp:', err);
+    res.status(500).send('Error saving timestamp.');
+  }
+  });*/
 
+  try {
+    var karachiTime = moment().tz("Asia/Karachi");
+    
+    //var timestamp = karachiTime.format('YYYY-MM-DD HH:mm:ss');
+    
+    const timestamp = karachiTime.toDate();
+    
+    // Save the timestamp to the database or perform any other necessary actions
+    console.log('Timestamp (Karachi Time):', karachiTime.format());
+    console.log('Timestamp:', timestamp);
+
+    // Create a new instance of Timestamp model
+    var newTimestamp = new Timestamp({
+      timestamp: karachiTime.toDate()//toISOString()
+    });
+
+    // Save the new timestamp to the database
+    newTimestamp.save((err, createdTimestamp) => {
+      if (err) {
+        console.error('Error saving timestamp:', err);
+        res.status(500).json({ error: 'Failed to save timestamp' });
+      } else {
+        console.log('Timestamp saved:', createdTimestamp);
+        res.status(200).json({ success: true, timestamp: createdTimestamp });
+      }
+    });
+  } catch (err) {
+    console.error('Error saving timestamp:', err);
+    res.status(500).send('Error saving timestamp.');
+  }
+});
 
 
 var upload = multer({
@@ -230,7 +272,11 @@ app.post("/add-product", upload.any(), (req, res) => {
       new_product.emer_mob = req.body.emer_mob;
       new_product.image = req.files[0].filename;
       
-      
+      //-----------------------------------------------
+      /*var timestamp = moment().tz("Asia/Karachi").format('HH:mm:ss');
+      new_product.timestamp = timestamp;*/
+
+
       new_product.user_id = req.user.id;
       new_product.save((err, data) => {
         if (err) {
