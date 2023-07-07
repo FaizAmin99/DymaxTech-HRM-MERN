@@ -1,2 +1,1 @@
-DymaxTech HR Management system app to manage your company employees.
-
+DymaxTech HR Management system app to manage the company's employees.
