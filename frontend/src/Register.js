@@ -96,8 +96,7 @@ class Register extends React.Component {
             onClick={() => {
               this.props.navigate("/");
             }}
-          >
-            Login
+          >Login
           </Link>
         </div>
       </div>

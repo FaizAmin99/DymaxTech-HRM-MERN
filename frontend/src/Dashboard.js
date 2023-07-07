@@ -8,6 +8,7 @@ import { Pagination } from '@material-ui/lab';
 import swal from 'sweetalert';
 import { withRouter } from './utils';
 import { format } from 'date-fns';
+import Modal from 'react-modal';
 
 const axios = require('axios');
 
@@ -26,11 +27,21 @@ class Dashboard extends Component {
       .then((response) => {
         console.log('Timestamp saved successfully:', response.data);
         // Perform any additional actions upon successful save
+
+        /*swal({
+          text: 'You punched in at ${timestamp}',
+          icon: "success",
+          type: "success"
+        });*/
       })
       .catch((error) => {
         console.error('Error saving timestamp:', error);
         // Handle the error if needed
       });
+  };
+
+  handlePunchInModalClose = () => {
+    this.setState({ punchInModalOpen: false });
   };
 
 
@@ -365,6 +376,28 @@ class Dashboard extends Component {
         >
           <DialogTitle id="alert-dialog-title">Edit Employee</DialogTitle>
           <DialogContent>
+          <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="email"
+              value={this.state.email}
+              onChange={this.onChange}
+              placeholder="Employee Email"
+              required
+            /><br />
+
+              <TextField
+              id="standard-basic"
+              type="password"
+              autoComplete="off"
+              name="pass"
+              value={this.state.pass}
+              onChange={this.onChange}
+              placeholder="Employee Password"
+              required
+            /><br />
+
             <TextField
               id="standard-basic"
               type="text"
@@ -384,49 +417,53 @@ class Dashboard extends Component {
               onChange={this.onChange}
               placeholder="Designation"
               required
-            /><br />
-            <TextField
-              id="standard-basic"
-              type="number"
-              autoComplete="off"
-              name="salary"
-              value={this.state.salary}
-              onChange={this.onChange}
-              placeholder="Salary"
-              required
-            /><br />
-            <TextField
-              id="standard-basic"
-              type="number"
-              autoComplete="off"
-              name="mob"
-              value={this.state.mob}
-              onChange={this.onChange}
-              placeholder="Mobile no."
-              required
-            /><br />
-            <TextField
+            /><br /><br />
+             <TextField
             id="standard-basic"
             type="date"
             autoComplete="off"
             name="joiningDate"
             value={this.state.joiningDate}
             onChange={this.onChange}
-            placeholder="Joining Date"
+            label="Joining Date"
             required
-            /><br />
-            <TextField
+            InputLabelProps={{
+              shrink: true,
+            }}
+          /><br /><br />
+             <TextField
             id="standard-basic"
             type="date"
             autoComplete="off"
             name="dob"
             value={this.state.dob}
             onChange={this.onChange}
-            placeholder="Date of Birth"
+            label="Date of Birth"
             required
-            
-            /><br />
-            <FormControl required>
+            InputLabelProps={{
+              shrink: true,
+            }}
+          /><br />
+
+              <FormControl required>
+              <InputLabel id="dept-label">Department</InputLabel>
+              <Select
+              labelId="dept-label"
+              id="dept"
+              name="dept"
+              value={this.state.dept}
+              onChange={this.onChange}
+              >
+
+                <MenuItem value="Development">Development</MenuItem>
+                <MenuItem value="Marketing">Marketing</MenuItem>
+                <MenuItem value="Management">Management</MenuItem>
+                </Select>
+                </FormControl>
+                <br></br>
+                
+
+                <FormControl required>
               <InputLabel id="gender-label">Gender</InputLabel>
               <Select
               labelId="gender-label"
@@ -441,9 +478,97 @@ class Dashboard extends Component {
                 </Select>
                 </FormControl>
                 <br></br>
-                    
-            <br /><br />
+                <FormControl required>
+              <InputLabel id="stat-label">Status</InputLabel>
+              <Select
+              labelId="stat-label"
+              id="stat"
+              name="stat"
+              value={this.state.stat}
+              onChange={this.onChange}
+              >
+
+                <MenuItem value="Active">Active</MenuItem>
+                <MenuItem value="Inactive">Inactive</MenuItem>
+                </Select>
+                </FormControl>
+                <br></br>
+                <TextField
+              id="standard-basic"
+              type="number"
+              autoComplete="off"
+              name="mob"
+              value={this.state.mob}
+              onChange={this.onChange}
+              placeholder="Mobile no."
+              required
+            /><br />
+            <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="pre_addr"
+              value={this.state.pre_addr}
+              onChange={this.onChange}
+              placeholder="Present Address"
+              required
+            /><br />
             
+            <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="perm_addr"
+              value={this.state.perm_addr}
+              onChange={this.onChange}
+              placeholder="Permenant Address"
+              required
+            /><br />
+
+            <TextField
+              id="standard-basic"
+              type="number"
+              autoComplete="off"
+              name="salary"
+              value={this.state.salary}
+              onChange={this.onChange}
+              placeholder="Salary"
+              required
+            /><br />
+
+            <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="emer_name"
+              value={this.state.emer_name}
+              onChange={this.onChange}
+              placeholder="Emergency Contact Name"
+              required
+            /><br />
+
+<TextField
+              id="standard-basic"
+              type="number"
+              autoComplete="off"
+              name="emer_mob"
+              value={this.state.emer_mob}
+              onChange={this.onChange}
+              placeholder="Emergency Contact Mobile no."
+              required
+            /><br />
+           
+           <TextField
+              id="standard-basic"
+              type="text"
+              autoComplete="off"
+              name="cv_link"
+              value={this.state.cv_link}
+              onChange={this.onChange}
+              placeholder="Link of Resume/CV"
+              required
+            /><br />
+                <br></br>
             <Button
               variant="contained"
               component="label"
@@ -457,6 +582,7 @@ class Dashboard extends Component {
                 id="fileInput"
                 placeholder="File"
                 hidden
+                required
               />
             </Button>&nbsp;
             {this.state.fileName}
@@ -569,6 +695,7 @@ class Dashboard extends Component {
                 </Select>
                 </FormControl>
                 <br></br>
+                
 
                 <FormControl required>
               <InputLabel id="gender-label">Gender</InputLabel>
@@ -654,7 +781,7 @@ class Dashboard extends Component {
               required
             /><br />
 
-<TextField
+            <TextField
               id="standard-basic"
               type="number"
               autoComplete="off"
@@ -826,3 +953,4 @@ class Dashboard extends Component {
 
 
 export default withRouter(Dashboard);
+

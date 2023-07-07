@@ -413,7 +413,7 @@ app.post("/delete-product", (req, res) => {
         if (data.is_delete) {
           res.status(200).json({
             status: true,
-            title: 'Employee deleted.'
+            title: 'Employee INACTIVATED !'
           });
         } else {
           res.status(400).json({
