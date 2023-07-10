@@ -25,10 +25,40 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}))
 
 //Defining route to save the timestamp
-app.post('/api/save-timestamp', (req,res) => {
-  
+// Defining route to save the timestamp
+// Defining route to save the timestamp
+app.post('/api/save-timestamp', async (req, res) => {
+  let karachiTime; // Declare the variable outside the try block
   try {
-    var karachiTime = moment().tz("Asia/Karachi");
+    karachiTime = moment().tz("Asia/Karachi"); // Initialize the variable inside the try block
+    
+    const existingTimestamp = await Timestamp.findOne({ timestamp_out: null });
+
+    if (existingTimestamp) {
+      // If an existing timestamp record without a time out is found,
+      // update it with the time out timestamp
+      existingTimestamp.timestamp_out = karachiTime.toDate();
+      await existingTimestamp.save();
+      console.log('Timestamp Out saved:', karachiTime.format('HH:mm:ss'));
+      res.status(200).json({ success: true, timestamp: existingTimestamp });
+    } else {
+      // If no existing timestamp record without a time out is found,
+      // create a new timestamp record with the time in timestamp
+      const newTimestamp = new Timestamp({
+        timestamp: karachiTime.toDate(),
+        timestamp_out: null
+      });
+      await newTimestamp.save();
+      console.log('Timestamp In saved:', karachiTime.format('HH:mm:ss'));
+      res.status(200).json({ success: true, timestamp: newTimestamp });
+    }
+  } catch (err) {
+    console.error('Error saving timestamp:', err);
+    res.status(500).json({ error: 'Failed to save timestamp' });
+  }
+});
+
+
     
     //var timestamp = karachiTime.format('YYYY-MM-DD HH:mm:ss');
        
@@ -38,12 +68,12 @@ app.post('/api/save-timestamp', (req,res) => {
   
 
     // New instance of Timestamp model
-    var newTimestamp = new Timestamp({
-      timestamp: karachiTime.toDate()//toISOString()
-    });
+    /*var newTimestamp = new Timestamp({
+      timestamp: karachiTime.toDate()
+    });*/
 
     // Save the new timestamp to the database
-    newTimestamp.save((err, createdTimestamp) => {
+    /*newTimestamp.save((err, createdTimestamp) => {
       if (err) {
         console.error('Error saving timestamp:', err);
         res.status(500).json({ error: 'Failed to save timestamp'});
@@ -57,7 +87,7 @@ app.post('/api/save-timestamp', (req,res) => {
     console.error('Error saving timestamp:', err);
     res.status(500).send('Error saving timestamp.');
   }
-});
+});*/
 
 var upload = multer({
   

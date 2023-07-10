@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import {
   Button, TextField, Dialog, DialogActions, LinearProgress,
   DialogTitle, DialogContent, TableBody, Table,
@@ -13,12 +13,49 @@ import Modal from 'react-modal';
 const axios = require('axios');
 
 
+const Clock = ({ isPunchedIn }) => {
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [duration, setDuration] = useState(null);
+
+  useEffect(() => {
+    if (isPunchedIn) {
+      setStartTime(new Date());
+      setEndTime(null);
+      setDuration(null);
+      
+    } else {
+      
+        setEndTime(new Date());
+      
+    }
+  }, [isPunchedIn]);
+
+  useEffect(() => {
+    if (startTime && endTime) {
+      const durationMs = Math.abs(endTime - startTime);
+      const formattedDuration = new Date(durationMs).toISOString().substr(11, 8);
+      setDuration(formattedDuration);
+    }
+  }, [startTime, endTime]);
+
+  return (
+    <div>
+      {startTime && <p>Start Time: {format(startTime, 'hh:mm:ss a')}</p>}
+      {endTime && <p>End Time: {format(endTime, 'hh:mm:ss a')}</p>}
+      {duration && <p>Duration: {duration}</p>}
+    </div>
+  );
+};
 
 
 
 
 class Dashboard extends Component {
 
+
+  
+  
 
   
   handleTimePunchIn = () => {
@@ -85,6 +122,7 @@ class Dashboard extends Component {
       pages: 0,
       loading: false,
       isPunchedIn: false,
+      clockTime: null,
 
       showWelcomeCard: true,
       //username: ''
@@ -102,6 +140,33 @@ class Dashboard extends Component {
       });
     }
   }
+
+
+
+
+
+
+  startClock = () => {
+    const startTime = new Date();
+    this.setState({ clockTime: startTime });
+  };
+  
+  stopClock = () => {
+    const { clockTime } = this.state;
+    if (clockTime) {
+      const endTime = new Date();
+      const duration = Math.abs(endTime - clockTime);
+      const formattedDuration = new Date(duration).toISOString().substr(11, 8);
+      console.log('Clock stopped:', formattedDuration);
+      this.setState({ clockTime: null });
+    }
+  };
+  
+
+
+
+
+
 
   getProduct = () => {
     
@@ -350,8 +415,8 @@ class Dashboard extends Component {
 
     return (
       <div>
-
-<Button variant="contained" color={ isPunchedIn ? 'secondary' : 'primary'} onClick={this.handleTimePunchIn}> {isPunchedIn ? "Time Punch Out" : "Time Punch In"}
+         <Clock isPunchedIn={isPunchedIn} />
+  <Button variant="contained" color={ isPunchedIn ? 'secondary' : 'primary'} onClick={this.handleTimePunchIn}> {isPunchedIn ? "Time Punch Out" : "Time Punch In"}
       </Button>
 
 
@@ -559,7 +624,7 @@ class Dashboard extends Component {
               required
             /><br />
 
-<TextField
+              <TextField
               id="standard-basic"
               type="number"
               autoComplete="off"
@@ -868,7 +933,9 @@ class Dashboard extends Component {
 </Button>
 
 
-*/}
+*/
+
+}
           </DialogActions>
         </Dialog>
 

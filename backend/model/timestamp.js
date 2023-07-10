@@ -7,8 +7,8 @@ timestampSchema = new Schema({
     required: true },
 
     timestamp_out: { 
-      type: Date,
-      required: true },
+      type: Date
+    },
   
 });
 
