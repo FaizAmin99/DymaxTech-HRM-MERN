@@ -19,20 +19,29 @@ const axios = require('axios');
 
 class Dashboard extends Component {
 
+
+  
   handleTimePunchIn = () => {
-    const timestamp = new Date();
+    const timestamp  = new Date();
+    const { isPunchedIn } = this.state;
+
+    const endpoint = isPunchedIn ? 'punch-out' : 'punch-in';
   
     axios
       .post('http://localhost:2000/api/save-timestamp', { timestamp })
-      .then((response) => {
-        console.log('Timestamp saved successfully:', response.data);
+      .then((res) => {
+        console.log('Timestamp saved successfully:', res.data);
         // Perform any additional actions upon successful save
 
-        /*swal({
-          text: 'You punched in at ${timestamp}',
+        const action = isPunchedIn ? 'punched out' : 'punched in';
+
+        swal({
+          text: `You ${action} at ${ timestamp.toLocaleTimeString() }`,
           icon: "success",
           type: "success"
-        });*/
+        });
+
+        this.setState({ isPunchedIn: !isPunchedIn});
       })
       .catch((error) => {
         console.error('Error saving timestamp:', error);
@@ -75,6 +84,7 @@ class Dashboard extends Component {
       products: [],
       pages: 0,
       loading: false,
+      isPunchedIn: false,
 
       showWelcomeCard: true,
       //username: ''
@@ -335,11 +345,13 @@ class Dashboard extends Component {
   };
 
  render() {
+
+    const { isPunchedIn }=this.state;
+
     return (
       <div>
 
-<Button variant="contained" color="primary" onClick={this.handleTimePunchIn}>
-        Time Punch In
+<Button variant="contained" color={ isPunchedIn ? 'secondary' : 'primary'} onClick={this.handleTimePunchIn}> {isPunchedIn ? "Time Punch Out" : "Time Punch In"}
       </Button>
 
 

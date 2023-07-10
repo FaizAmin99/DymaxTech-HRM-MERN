@@ -19,7 +19,6 @@ productSchema = new Schema( {
 	emer_name: String,
 	emer_mob: Number,
 	cv_link: String,
-	timestamp:Date,
 	user_id: Schema.ObjectId,
 	is_delete: { type: Boolean, default: false },
 	//date : { type : Date, default: Date.now }

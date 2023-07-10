@@ -1,9 +1,15 @@
 const mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-const timestampSchema = new mongoose.Schema({
+timestampSchema = new Schema({
   timestamp: { 
     type: Date,
     required: true },
+
+    timestamp_out: { 
+      type: Date,
+      required: true },
+  
 });
 
 
