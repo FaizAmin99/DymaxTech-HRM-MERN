@@ -20,11 +20,11 @@ const Clock = ({ isPunchedIn }) => {
 
   useEffect(() => {
     if (isPunchedIn) {
-      setStartTime(new Date());
+     setStartTime(new Date());
       setEndTime(null);
       setDuration(null);
       
-    } else {
+    } else if (!isPunchedIn && startTime){
       
         setEndTime(new Date());
       
@@ -39,11 +39,35 @@ const Clock = ({ isPunchedIn }) => {
     }
   }, [startTime, endTime]);
 
+
+  const formatDate = (date) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+  };
+
+  const formatTime = (date) => {
+    const options = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12:'true'};
+    return date.toLocaleTimeString('en-US', options);
+  };
+
   return (
     <div>
-      {startTime && <p>Start Time: {format(startTime, 'hh:mm:ss a')}</p>}
-      {endTime && <p>End Time: {format(endTime, 'hh:mm:ss a')}</p>}
-      {duration && <p>Duration: {duration}</p>}
+      {startTime && (
+        <p>
+          Date: <i><b>{formatDate(startTime)}</b></i>
+        </p>
+      )}
+      {startTime && (
+        <p>
+          Start Time: <b>{formatTime(startTime)}</b>
+        </p>
+      )}
+      {endTime && (
+      <p>
+      End Time: <b>{formatTime(endTime)}</b>
+      </p>
+      )}
+      {duration && <p>Duration: <b>{duration}</b></p>}
     </div>
   );
 };
@@ -87,8 +111,9 @@ class Dashboard extends Component {
   };
 
   handlePunchInModalClose = () => {
-    this.setState({ punchInModalOpen: false });
-  };
+  this.setState({ punchInModalOpen: false });
+};
+
 
 
   constructor() {
@@ -123,11 +148,26 @@ class Dashboard extends Component {
       loading: false,
       isPunchedIn: false,
       clockTime: null,
+      attendanceData: [],
+      error: null,
 
       showWelcomeCard: true,
       //username: ''
     };
   }
+
+  handleShowAttendanceReport = () => {
+    axios
+      .get('http://localhost:2000/api/attendance')
+      .then(response => {
+        this.setState({ attendanceData: response.data, error: null });
+      })
+
+      .catch(error => {
+        console.error('Error fetching attendance data:', error);
+        this.setState({ error: 'Failed to fetch attendance data' });
+      });
+  };
 
   componentDidMount = () => {
     let token = localStorage.getItem('token');
@@ -411,13 +451,15 @@ class Dashboard extends Component {
 
  render() {
 
+    const { attendanceData, error } = this.state;
+
     const { isPunchedIn }=this.state;
 
     return (
       <div>
          <Clock isPunchedIn={isPunchedIn} />
-  <Button variant="contained" color={ isPunchedIn ? 'secondary' : 'primary'} onClick={this.handleTimePunchIn}> {isPunchedIn ? "Time Punch Out" : "Time Punch In"}
-      </Button>
+        <Button variant="contained" color={ isPunchedIn ? 'secondary' : 'primary'} onClick={this.handleTimePunchIn}> {isPunchedIn ? "Time Punch Out" : "Time Punch In"}
+        </Button>
 
 
 
@@ -910,32 +952,7 @@ class Dashboard extends Component {
               Add New Employee
             </Button>
 
-            {/*<Button
-  className="button_style"
-  variant="contained"
-  color="primary"
-  size="small"
-
-  disabled={
-    this.state.name === '' ||
-    this.state.role === '' ||
-    this.state.mob === '' ||
-    this.state.salary === '' ||
-    this.state.joiningDate === '' ||
-    this.state.dateOfBirth === '' ||
-    this.state.gender === '' ||
-    this.state.file === null
-  }
-
-  onClick={(e) => this.addProduct()}
->
-  Add Employee Data 
-</Button>
-
-
-*/
-
-}
+            
           </DialogActions>
         </Dialog>
 
@@ -1025,6 +1042,39 @@ class Dashboard extends Component {
           <Pagination count={this.state.pages} page={this.state.page} onChange={this.pageChange} color="primary" />
         </TableContainer>
 
+<br></br>
+      <Button className="button_style"
+            variant="contained"
+            color="default"
+            size="small"
+            onClick={this.handleShowAttendanceReport}> Show Attendance Report</Button>
+
+      {error && <p>{error}</p>}
+      {attendanceData.length > 0 && (
+        <div> 
+          <h2>Attendance Report</h2>
+          <table>
+            <thead>
+              <tr>
+              <th>Date:   </th>
+                <th>Time Punch In:</th>
+                <th>Time Punch Out:</th>
+              </tr>
+            </thead>
+            <tbody>
+              {attendanceData.map(timestamp => (
+                <tr key={timestamp._id}>
+                  <td>{format(new Date(timestamp.timestamp), "dd/MM/yyyy")}</td>
+                  <td>{format(new Date(timestamp.timestamp), "hh:mm:ss a")}</td>
+                
+                <td>{format(new Date(timestamp.timestamp_out), "hh:mm:ss a")}
+                </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+      )}
       </div>
     );
   }

@@ -12,6 +12,14 @@ var fs = require('fs');
 var product = require("./model/employee.js");
 var user = require("./model/user.js");
 var moment = require('moment-timezone');
+//var timestamp = require('../model/timestamp');
+const router = express.Router();
+app.use(cors({ origin: 'http://localhost:3000' }));
+
+
+
+var attendanceRoute = require("./routes/attendance");
+app.use('/api/attendance', attendanceRoute);
 
 app.use(cors());
 
@@ -57,37 +65,6 @@ app.post('/api/save-timestamp', async (req, res) => {
     res.status(500).json({ error: 'Failed to save timestamp' });
   }
 });
-
-
-    
-    //var timestamp = karachiTime.format('YYYY-MM-DD HH:mm:ss');
-       
-    
-    // Save the timestamp to the database or perform any other necessary actions
-    //console.log('Timestamp (Karachi Time):', karachiTime.format());
-  
-
-    // New instance of Timestamp model
-    /*var newTimestamp = new Timestamp({
-      timestamp: karachiTime.toDate()
-    });*/
-
-    // Save the new timestamp to the database
-    /*newTimestamp.save((err, createdTimestamp) => {
-      if (err) {
-        console.error('Error saving timestamp:', err);
-        res.status(500).json({ error: 'Failed to save timestamp'});
-      } else {
-        console.log('Timestamp saved:', karachiTime.format('HH:mm:ss')); //createdTimestamp);
-        res.status(200).json({ success: true, timestamp: createdTimestamp });
-      }
-    });
-    
-  } catch (err) {
-    console.error('Error saving timestamp:', err);
-    res.status(500).send('Error saving timestamp.');
-  }
-});*/
 
 var upload = multer({
   
@@ -255,6 +232,33 @@ function checkUserAndGenerateToken(data, req, res) {
     }
   });
 }
+
+
+// fetching report
+
+router.post('/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({message: 'Username already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+
+    res.status(201).json({ message: 'User registered successfully '});
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: 'Internal server error '});
+  }
+});
 
 /* Api to add Product */
 app.post("/add-product", upload.any(), (req, res) => {
@@ -478,7 +482,6 @@ app.get("/get-product", (req, res) => {
                 status: false
               });
             }
-
           });
 
       }).catch(err => {
@@ -493,9 +496,28 @@ app.get("/get-product", (req, res) => {
       status: false
     });
   }
+});
 
+
+
+app.get('/api/attendance-report', async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming you have the user ID available in the request
+    const attendanceData = await Timestamp.find({ userId }).select('timestamp timestamp_out');
+
+    if (attendanceData.length === 0) {
+      return res.status(404).json({ error: 'No attendance data available for the user' });
+    }
+
+    res.json(attendanceData);
+  } catch (error) {
+    console.error('Error fetching attendance data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.listen(2000, () => {
   console.log("Server is Runing On port 2000");
 });
+
+module.exports = router;
