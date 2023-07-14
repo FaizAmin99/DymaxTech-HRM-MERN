@@ -60,56 +60,111 @@ const Clock = ({ isPunchedIn }) => {
       {startTime && (
         <p>
           Start Time: <b>{formatTime(startTime)}</b>
+          
         </p>
       )}
-      {endTime && (
-      <p>
-      End Time: <b>{formatTime(endTime)}</b>
-      </p>
+      {isPunchedIn && endTime && (
+        <p>
+          End Time: <b>{formatTime(endTime)}</b>
+        </p>      
       )}
       {duration && <p>Duration: <b>{duration}</b></p>}
     </div>
   );
+
+  
 };
 
-
-
-
 class Dashboard extends Component {
-
-
   
+ handleTimePunchIn = () => {
+ const { isPunchedIn, endTime } = this.state;
   
-
+    if (isPunchedIn) {
+      swal({
+        text: 'You have already punched in for today.',
+        icon: 'warning',
+        type: 'warning',
+      });
+      return;
+    }
   
-  handleTimePunchIn = () => {
-    const timestamp  = new Date();
-    const { isPunchedIn } = this.state;
-
-    const endpoint = isPunchedIn ? 'punch-out' : 'punch-in';
+    const timestamp = new Date();
   
-    axios
-      .post('http://localhost:2000/api/save-timestamp', { timestamp })
+    axios.post('http://localhost:2000/api/save-timestamp', { timestamp })
       .then((res) => {
         console.log('Timestamp saved successfully:', res.data);
-        // Perform any additional actions upon successful save
-
-        const action = isPunchedIn ? 'punched out' : 'punched in';
-
+        const action = 'punched in';
         swal({
-          text: `You ${action} at ${ timestamp.toLocaleTimeString() }`,
-          icon: "success",
-          type: "success"
+          text: `You ${action} at ${timestamp.toLocaleTimeString()}`,
+          icon: 'success',
+          type: 'success',
         });
-
-        this.setState({ isPunchedIn: !isPunchedIn});
+        this.setState({ isPunchedIn: true, startTime: timestamp });
+  
+        // Store punch status in local storage
+        localStorage.setItem('punchStatus', 'in');
       })
       .catch((error) => {
         console.error('Error saving timestamp:', error);
-        // Handle the error if needed
       });
   };
-
+  
+  handleTimePunchOut = () => {
+    const { isPunchedIn, startTime, endTime } = this.state;
+  
+    if (!isPunchedIn || !startTime) {
+      swal({
+        text: 'You have not punched in today.',
+        icon: 'warning',
+        type: 'warning',
+      });
+      return;
+    }
+  
+    if (endTime) {
+      swal({
+        text: 'You have already punched out for today.',
+        icon: 'warning',
+        type: 'warning',
+      });
+      return;
+    }
+      const timestamp = new Date();
+  
+      swal({
+      text: `You punched out at ${timestamp.toLocaleTimeString()}`,
+      icon: 'success',
+      type: 'success',
+    }).then(() => {
+      axios
+        .post('http://localhost:2000/api/save-timestamp', { timestamp })
+        .then((res) => {
+          console.log('Timestamp saved successfully:', res.data);
+          this.setState({ endTime: timestamp }, () => {
+            // Store punch status in local storage
+            localStorage.setItem('punchStatus', 'out');
+          });
+        })
+        .catch((error) => {
+          console.error('Error saving timestamp:', error);
+        });
+    });
+  };
+  
+  
+  componentDidMount() {
+    // Retrieve punch status from local storage
+    const punchStatus = localStorage.getItem('punchStatus');
+  
+    if (punchStatus === 'in') {
+      this.setState({ isPunchedIn: true });
+    } else if (punchStatus === 'out') {
+      this.setState({ isPunchedIn: false });
+    }
+  }
+  
+  
   handlePunchInModalClose = () => {
   this.setState({ punchInModalOpen: false });
 };
@@ -372,7 +427,6 @@ class Dashboard extends Component {
 
       this.handleProductEditClose();
       this.setState({ email: '', pass: '', name: '', desg: '', joiningDate:'', dob:'', dept:'', gender:'', stat:'', mob: '', pre_addr: '', perm_addr: '', salary: '', cv_link: '', emer_name: '', emer_mob: '', file: null }, () => {
-       
        this.getProduct();
       });
     }).catch((err) => {
@@ -383,7 +437,6 @@ class Dashboard extends Component {
       });
       this.handleProductEditClose();
     });
-
   }
 
   handleProductOpen = () => {
@@ -440,7 +493,6 @@ class Dashboard extends Component {
       emer_name: data.emer_name,
       emer_mob: data.emer_mob,
       cv_link: data.cv_link,
-      
       fileName: data.image
     });
   };
@@ -450,18 +502,20 @@ class Dashboard extends Component {
   };
 
  render() {
-
     const { attendanceData, error } = this.state;
-
-    const { isPunchedIn }=this.state;
-
+    const { isPunchedIn , endTime}=this.state;
+   
     return (
       <div>
-         <Clock isPunchedIn={isPunchedIn} />
-        <Button variant="contained" color={ isPunchedIn ? 'secondary' : 'primary'} onClick={this.handleTimePunchIn}> {isPunchedIn ? "Time Punch Out" : "Time Punch In"}
-        </Button>
-
-
+       <Clock isPunchedIn={isPunchedIn} />
+       <Button
+       variant="contained" 
+       color={ isPunchedIn ? 'secondary' : 'primary'}
+        onClick={isPunchedIn ? this.handleTimePunchOut : this.handleTimePunchIn}
+        disabled={isPunchedIn && endTime}
+      >
+        {isPunchedIn ? 'Time Punch Out' : 'Time Punch In'}
+      </Button>
 
         {this.state.loading && <LinearProgress size={40} />}
         <div>
@@ -581,7 +635,6 @@ class Dashboard extends Component {
                 </FormControl>
                 <br></br>
                 
-
                 <FormControl required>
               <InputLabel id="gender-label">Gender</InputLabel>
               <Select
@@ -591,7 +644,6 @@ class Dashboard extends Component {
               value={this.state.gender}
               onChange={this.onChange}
               >
-
                 <MenuItem value="Male">Male</MenuItem>
                 <MenuItem value="Female">Female</MenuItem>
                 </Select>
@@ -606,7 +658,6 @@ class Dashboard extends Component {
               value={this.state.stat}
               onChange={this.onChange}
               >
-
                 <MenuItem value="Active">Active</MenuItem>
                 <MenuItem value="Inactive">Inactive</MenuItem>
                 </Select>
@@ -947,7 +998,7 @@ class Dashboard extends Component {
             </Button>
 
             <Button
-              disabled={this.state.email == '' || this.state.pass == '' || this.state.name == '' || this.state.desg == '' || this.state.joiningDate == '' || this.state.dob == '' || this.state.dept == '' || this.state.gender == '' || this.state.gender == '' || this.state.stat == '' || this.state.mob == '' || this.state.pre_addr == '' || this.state.perm_addr == '' || this.state.salary == '' || this.state.cv_link == '' || this.state.emer_mob == '' || this.state.emer_name == '' || this.state.file == null}
+              disabled={this.state.email === '' || this.state.pass === '' || this.state.name === '' || this.state.desg === '' || this.state.joiningDate === '' || this.state.dob === '' || this.state.dept === '' || this.state.gender === '' || this.state.gender === '' || this.state.stat === '' || this.state.mob === '' || this.state.pre_addr === '' || this.state.perm_addr === '' || this.state.salary === '' || this.state.cv_link === '' || this.state.emer_mob === '' || this.state.emer_name === '' || this.state.file === null}
               onClick={(e) => this.addProduct()} color="primary" autoFocus>
               Add New Employee
             </Button>
@@ -1059,16 +1110,23 @@ class Dashboard extends Component {
               <th>Date:   </th>
                 <th>Time Punch In:</th>
                 <th>Time Punch Out:</th>
+                <th>Duration:</th>
               </tr>
             </thead>
             <tbody>
               {attendanceData.map(timestamp => (
                 <tr key={timestamp._id}>
                   <td>{format(new Date(timestamp.timestamp), "dd/MM/yyyy")}</td>
-                  <td>{format(new Date(timestamp.timestamp), "hh:mm:ss a")}</td>
+                  <td>{format(new Date(timestamp.timestamp), "hh:mm a")}</td>
                 
-                <td>{format(new Date(timestamp.timestamp_out), "hh:mm:ss a")}
+                <td>{format(new Date(timestamp.timestamp_out), "hh:mm a")}
                 </td>
+                <td>
+                      {this.calculateDuration(
+                        new Date(timestamp.timestamp),
+                        new Date(timestamp.timestamp_out)
+                      )}
+                      </td>
                 </tr>
               ))}
             </tbody>
@@ -1078,8 +1136,17 @@ class Dashboard extends Component {
       </div>
     );
   }
+
+
+  calculateDuration = (punchTimeIn, punchTimeOut) => {
+    const timeDiff = punchTimeOut.getTime() - punchTimeIn.getTime();
+    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
+   
+
+    return `${hours} hr : ${minutes}min`;
+  };
 }
 
 
 export default withRouter(Dashboard);
-
