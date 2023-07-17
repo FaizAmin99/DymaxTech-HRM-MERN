@@ -259,7 +259,7 @@ class Dashboard extends Component {
 
   componentDidMount() {
     const shiftEnd = new Date();
-    shiftEnd.setHours(12, 27, 0); //shift end time 
+    shiftEnd.setHours(13, 4, 0); //shift end time 
     const now = new Date();
     const hasPunchedIn = this.state.attendanceData.length > 0;
 
@@ -1205,10 +1205,14 @@ class Dashboard extends Component {
     );
   }
 
+  shouldShowModal = (status, punchTimeOut, shiftTimings) => {
+    return punchTimeOut > shiftTimings.end;
+  };
+
   calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
     const shiftTimings = {
       start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 12, 16, 0), //  shift start time
-      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 12, 27, 0) //  shift end time
+      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 13, 4, 0) //  shift end time
     };
   
     const differenceInMinutesIn = differenceInMinutes(punchTimeIn, shiftTimings.start);
@@ -1224,7 +1228,7 @@ class Dashboard extends Component {
     let overtime =
       differenceInMinutes(punchTimeOut, shiftTimings.end) > 0
         ? `${differenceInMinutes(punchTimeOut, shiftTimings.end)} mins overtime`
-        : 'No Overtime';
+        : '-';
 
        /* if (status === 'Late' && punchTimeOut > shiftTimings.end) {
           this.setState({ showModal: true });
@@ -1310,4 +1314,4 @@ class Dashboard extends Component {
 
 
 
-export default withRouter(Dashboard);
+export default withRouter(Dashboard);       
