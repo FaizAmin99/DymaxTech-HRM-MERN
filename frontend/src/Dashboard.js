@@ -7,7 +7,7 @@ import {
 import { Pagination } from '@material-ui/lab';
 import swal from 'sweetalert';
 import { withRouter } from './utils';
-import { format } from 'date-fns';
+import { format, differenceInMinutes  } from 'date-fns';
 import Modal from 'react-modal';
 
 const axios = require('axios');
@@ -1100,39 +1100,47 @@ class Dashboard extends Component {
             size="small"
             onClick={this.handleShowAttendanceReport}> Show Attendance Report</Button>
 
-      {error && <p>{error}</p>}
-      {attendanceData.length > 0 && (
-        <div> 
-          <h2>Attendance Report</h2>
-          <table>
-            <thead>
-              <tr>
-              <th>Date:   </th>
-                <th>Time Punch In:</th>
-                <th>Time Punch Out:</th>
-                <th>Duration:</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceData.map(timestamp => (
-                <tr key={timestamp._id}>
-                  <td>{format(new Date(timestamp.timestamp), "dd/MM/yyyy")}</td>
-                  <td>{format(new Date(timestamp.timestamp), "hh:mm a")}</td>
-                
-                <td>{format(new Date(timestamp.timestamp_out), "hh:mm a")}
-                </td>
-                <td>
+{error && <p>{error}</p>}
+        {attendanceData.length > 0 && (
+          <div>
+            <h2>Attendance Report</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date:</th>
+                  <th>Time Punch In:</th>
+                  <th></th> {/* Break column */}
+                  <th>Time Punch Out:</th>
+                  <th>Duration:</th>
+                  <th></th> {/* Break column */}
+                  <th>Status:</th>
+                  <th></th> {/* Break column */}
+                  <th>Overtime:</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceData.map((timestamp) => (
+                  <tr key={timestamp._id}>
+                    <td>{format(new Date(timestamp.timestamp), 'dd/MM/yyyy')}</td>
+                    <td>{format(new Date(timestamp.timestamp), 'hh:mm:ss a')}</td>
+                    <td></td> {/* Empty cell for the break */}
+                    <td>{format(new Date(timestamp.timestamp_out), 'hh:mm:ss a')}</td>
+                    <td>
                       {this.calculateDuration(
                         new Date(timestamp.timestamp),
                         new Date(timestamp.timestamp_out)
                       )}
-                      </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td></td> {/* Empty cell for the break */}
+                    <td>{this.calculateLateness(new Date(timestamp.timestamp))}</td>
+                    <td></td> {/* Empty cell for the break */}
+                    <td>{this.calculateOvertime(new Date(timestamp.timestamp_out))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-      )}
+        )}
       </div>
     );
   }
@@ -1146,6 +1154,39 @@ class Dashboard extends Component {
 
     return `${hours} hr : ${minutes}min`;
   };
+  calculateLateness = (punchTimeIn) => {
+    const shiftTimings = {
+      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 9, 0, 0), // Replace with your shift start time
+      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 17, 0, 0) // Replace with your shift end time
+    };
+
+    const difference = differenceInMinutes(punchTimeIn, shiftTimings.start);
+
+    if (difference <= 0) {
+      return 'On Time';
+    } else {
+      return `${difference} minutes late`;
+    }
+  };
+
+  calculateOvertime = (punchTimeOut) => {
+    const shiftTimings = {
+      start: new Date(punchTimeOut.getFullYear(), punchTimeOut.getMonth(), punchTimeOut.getDate(), 9, 0, 0), // Replace with your shift start time
+      end: new Date(punchTimeOut.getFullYear(), punchTimeOut.getMonth(), punchTimeOut.getDate(), 17, 0, 0) // Replace with your shift end time
+    };
+
+    const difference = differenceInMinutes(punchTimeOut, shiftTimings.end);
+
+    if (difference <= 0) {
+      return 'No Overtime';
+    } else {
+      const hours = Math.floor(difference / 60);
+      const minutes = difference % 60;
+      return `${hours} hours ${minutes} minutes overtime`;
+    }
+  };
+
+
 }
 
 
