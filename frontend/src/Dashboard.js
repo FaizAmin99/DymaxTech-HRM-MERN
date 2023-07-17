@@ -205,6 +205,8 @@ class Dashboard extends Component {
       clockTime: null,
       attendanceData: [],
       error: null,
+      attendanceData: [],
+      error: '',
 
       showWelcomeCard: true,
       //username: ''
@@ -235,6 +237,8 @@ class Dashboard extends Component {
       });
     }
   }
+
+  
 
 
 
@@ -1108,35 +1112,48 @@ class Dashboard extends Component {
               <thead>
                 <tr>
                   <th>Date:</th>
+                  <th></th>
                   <th>Time Punch In:</th>
                   <th></th> {/* Break column */}
                   <th>Time Punch Out:</th>
+                  <th></th>
                   <th>Duration:</th>
                   <th></th> {/* Break column */}
-                  <th>Status:</th>
+                  <th>Lateness:</th>
                   <th></th> {/* Break column */}
                   <th>Overtime:</th>
+                  <th></th> {/* Break column */}
+                  <th>Status:</th>
                 </tr>
               </thead>
               <tbody>
-                {attendanceData.map((timestamp) => (
-                  <tr key={timestamp._id}>
-                    <td>{format(new Date(timestamp.timestamp), 'dd/MM/yyyy')}</td>
-                    <td>{format(new Date(timestamp.timestamp), 'hh:mm:ss a')}</td>
-                    <td></td> {/* Empty cell for the break */}
-                    <td>{format(new Date(timestamp.timestamp_out), 'hh:mm:ss a')}</td>
-                    <td>
-                      {this.calculateDuration(
-                        new Date(timestamp.timestamp),
-                        new Date(timestamp.timestamp_out)
-                      )}
-                    </td>
-                    <td></td> {/* Empty cell for the break */}
-                    <td>{this.calculateLateness(new Date(timestamp.timestamp))}</td>
-                    <td></td> {/* Empty cell for the break */}
-                    <td>{this.calculateOvertime(new Date(timestamp.timestamp_out))}</td>
-                  </tr>
-                ))}
+              {attendanceData.map((timestamp) => {
+                  const punchTimeIn = new Date(timestamp.timestamp);
+                  const punchTimeOut = new Date(timestamp.timestamp_out);
+                  const { duration, lateness, status, overtime } = this.calculateTimeMetrics(
+                    punchTimeIn,
+                    punchTimeOut
+                  );
+
+                  return (
+                    <tr key={timestamp._id}>
+                      <td>{format(punchTimeIn, 'dd/MM/yyyy')}</td>
+                      <td></td>
+                      <td>{format(punchTimeIn, 'hh:mm:ss a')}</td>
+                      <td></td>
+                      <td>{format(punchTimeOut, 'hh:mm:ss a')}</td>
+                      <td></td>
+                      <td>{duration}</td>
+                      <td></td>
+                      <td>{lateness}</td>
+                      <td></td>
+                      <td>{overtime}</td>
+                      <td></td>
+                      <td>{status}</td>
+                      <td></td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1144,9 +1161,38 @@ class Dashboard extends Component {
       </div>
     );
   }
+  calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
+    const shiftTimings = {
+      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 9, 0, 0), // Replace with your shift start time
+      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 17, 0, 0) // Replace with your shift end time
+    };
+  
+    const differenceInMinutesIn = differenceInMinutes(punchTimeIn, shiftTimings.start);
+    const differenceInMinutesOut = differenceInMinutes(punchTimeOut, shiftTimings.end);
+    const timeDiff = punchTimeOut.getTime() - punchTimeIn.getTime();
+    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
+  
+    let duration = `${hours} hr : ${minutes} min`;
+    let lateness = differenceInMinutesIn <= 0 ? 'On Time' : `${differenceInMinutesIn} minutes late`;
+    let status =
+      differenceInMinutesIn > 0 ? 'Late' : differenceInMinutesOut > 30 ? 'Overtime' : 'On Time';
+    let overtime =
+      differenceInMinutes(punchTimeOut, shiftTimings.end) > 0
+        ? `${differenceInMinutes(punchTimeOut, shiftTimings.end)} minutes overtime`
+        : 'No Overtime';
+  
+    return { duration, lateness, status, overtime };
+  };
+}
 
 
-  calculateDuration = (punchTimeIn, punchTimeOut) => {
+
+
+
+
+
+  /*  calculateDuration = (punchTimeIn, punchTimeOut) => {
     const timeDiff = punchTimeOut.getTime() - punchTimeIn.getTime();
     const hours = Math.floor(timeDiff / (1000 * 60 * 60));
     const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
@@ -1169,10 +1215,32 @@ class Dashboard extends Component {
     }
   };
 
+
+  calculateStatus = (punchTimeIn, punchTimeOut) => {
+    const shiftTimings = {
+      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 10, 20, 0), // Shift start time
+      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 9, 45, 0) // shift end time
+    };
+
+    const differenceInMinutesIn = differenceInMinutes(punchTimeIn, shiftTimings.start);
+    const differenceInMinutesOut = differenceInMinutes(punchTimeOut, shiftTimings.end);
+
+    if (differenceInMinutesIn > 0) {
+      return 'Late';
+    } else if (differenceInMinutesOut > 30) {
+      return 'Overtime';
+    } else {
+      return 'On Time';
+    }
+  };
+
+
+
+
   calculateOvertime = (punchTimeOut) => {
     const shiftTimings = {
-      start: new Date(punchTimeOut.getFullYear(), punchTimeOut.getMonth(), punchTimeOut.getDate(), 9, 0, 0), // Replace with your shift start time
-      end: new Date(punchTimeOut.getFullYear(), punchTimeOut.getMonth(), punchTimeOut.getDate(), 17, 0, 0) // Replace with your shift end time
+      start: new Date(punchTimeOut.getFullYear(), punchTimeOut.getMonth(), punchTimeOut.getDate(), 9, 0, 0), //shift start time
+      end: new Date(punchTimeOut.getFullYear(), punchTimeOut.getMonth(), punchTimeOut.getDate(), 17, 0, 0) //shift end time
     };
 
     const difference = differenceInMinutes(punchTimeOut, shiftTimings.end);
@@ -1182,12 +1250,16 @@ class Dashboard extends Component {
     } else {
       const hours = Math.floor(difference / 60);
       const minutes = difference % 60;
-      return `${hours} hours ${minutes} minutes overtime`;
+      return `${minutes} minutes overtime`;
     }
   };
+*/
 
 
-}
+
+
+
+
 
 
 export default withRouter(Dashboard);
