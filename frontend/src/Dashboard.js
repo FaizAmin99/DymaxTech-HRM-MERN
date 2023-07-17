@@ -9,6 +9,8 @@ import swal from 'sweetalert';
 import { withRouter } from './utils';
 import { format, differenceInMinutes  } from 'date-fns';
 import Modal from 'react-modal';
+import { paginationItemClasses } from '@mui/material';
+
 
 const axios = require('axios');
 
@@ -75,7 +77,11 @@ const Clock = ({ isPunchedIn }) => {
   
 };
 
+Modal.setAppElement('#root');
+
+
 class Dashboard extends Component {
+  
   
  handleTimePunchIn = () => {
  const { isPunchedIn, endTime } = this.state;
@@ -207,6 +213,8 @@ class Dashboard extends Component {
       error: null,
       attendanceData: [],
       error: '',
+      showModal: false,
+      isdoingOvertime:false,
 
       showWelcomeCard: true,
       //username: ''
@@ -239,11 +247,33 @@ class Dashboard extends Component {
   }
 
   
+  handlePunchOut = () => {
+    // Perform the punch out action
+    this.setState({ showModal: false });
+    // ...
+  };
 
+  handleContinueOvertime = () => {
+    this.setState({ showModal: false, isDoingOvertime: true });
+  };
 
+  componentDidMount() {
+    const shiftEnd = new Date();
+    shiftEnd.setHours(12, 27, 0); //shift end time 
+    const now = new Date();
+    const hasPunchedIn = this.state.attendanceData.length > 0;
 
+    if (now > shiftEnd) {
+      this.setState({ showModal: true });
+    }
 
-
+    // Automatically punch out after 3 minutes
+    setTimeout(() => {
+      if (!this.state.isDoingOvertime) {
+        this.handlePunchOut();
+      }
+    }, 1 * 60 * 1000);
+  }
 
   startClock = () => {
     const startTime = new Date();
@@ -508,6 +538,9 @@ class Dashboard extends Component {
  render() {
     const { attendanceData, error } = this.state;
     const { isPunchedIn , endTime}=this.state;
+    const { showModal } = this.state;
+
+    console.log(attendanceData);
    
     return (
       <div>
@@ -1158,13 +1191,24 @@ class Dashboard extends Component {
             </table>
           </div>
         )}
+         <Modal
+         
+          isOpen={showModal}
+          contentLabel="Shift End"
+          appElement={null}
+        >
+          <h2>Your shift time is over. Are you doing overtime?</h2>
+          <button onClick={this.handleContinueOvertime}>Yes</button>
+          <button onClick={this.handlePunchOut}>No</button>
+        </Modal>
       </div>
     );
   }
+
   calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
     const shiftTimings = {
-      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 9, 0, 0), // Replace with your shift start time
-      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 17, 0, 0) // Replace with your shift end time
+      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 12, 16, 0), //  shift start time
+      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 12, 27, 0) //  shift end time
     };
   
     const differenceInMinutesIn = differenceInMinutes(punchTimeIn, shiftTimings.start);
@@ -1174,14 +1218,18 @@ class Dashboard extends Component {
     const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
   
     let duration = `${hours} hr : ${minutes} min`;
-    let lateness = differenceInMinutesIn <= 0 ? 'On Time' : `${differenceInMinutesIn} minutes late`;
+    let lateness = differenceInMinutesIn <= 0 ? 'On Time' : `${differenceInMinutesIn} mins late`;
     let status =
       differenceInMinutesIn > 0 ? 'Late' : differenceInMinutesOut > 30 ? 'Overtime' : 'On Time';
     let overtime =
       differenceInMinutes(punchTimeOut, shiftTimings.end) > 0
-        ? `${differenceInMinutes(punchTimeOut, shiftTimings.end)} minutes overtime`
+        ? `${differenceInMinutes(punchTimeOut, shiftTimings.end)} mins overtime`
         : 'No Overtime';
-  
+
+       /* if (status === 'Late' && punchTimeOut > shiftTimings.end) {
+          this.setState({ showModal: true });
+        }
+  */
     return { duration, lateness, status, overtime };
   };
 }
