@@ -10,9 +10,15 @@ import { withRouter } from './utils';
 import { format, differenceInMinutes  } from 'date-fns';
 import Modal from 'react-modal';
 import { paginationItemClasses } from '@mui/material';
-
+import { writeFile } from 'xlsx';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+ 
 
 const axios = require('axios');
+
+
+
 
 
 const Clock = ({ isPunchedIn }) => {
@@ -77,12 +83,71 @@ const Clock = ({ isPunchedIn }) => {
   
 };
 
-Modal.setAppElement('#root');
-
-
 class Dashboard extends Component {
+
+  exportToExcel = () => {
+    const { attendanceData } = this.state;
+    const { username, name, Email } = this.props; // Assuming the user information is passed via props
   
+    const formatDate = (date) => format(new Date(date), 'dd/MM/yyyy');
+    const formatTime = (time) => format(new Date(time), 'hh:mm:ss a');
   
+    const worksheetData = [
+      ['Name:', this.state.username],
+      [],
+      ['Date', 'Time Punch In', 'Time Punch Out', 'Duration', 'Lateness', 'Overtime', 'Status'],
+      [],
+      ...attendanceData.map((timestamp) => {
+        const punchTimeIn = new Date(timestamp.timestamp);
+        const punchTimeOut = new Date(timestamp.timestamp_out);
+        const { duration, lateness, status, overtime } = this.calculateTimeMetrics(punchTimeIn, punchTimeOut);
+  
+        return [
+          formatDate(punchTimeIn),
+          formatTime(punchTimeIn),
+          formatTime(punchTimeOut),
+          duration,
+          lateness,
+          overtime,
+          status,
+        ];
+      }),
+    ];
+  
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+  
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Report');
+  
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const fileName = `Attendance_Report_${currentDate}.xlsx`;
+  
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary', bookSST: true });
+  
+    const s2ab = (s) => {
+      const buf = new ArrayBuffer(s.length);
+      const view = new Uint8Array(buf);
+      for (let i = 0; i < s.length; i++) {
+        view[i] = s.charCodeAt(i) & 0xff;
+      }
+      return buf;
+    };
+  
+    const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+  
+    if (window.navigator.msSaveOrOpenBlob) {
+      window.navigator.msSaveOrOpenBlob(blob, fileName);
+    } else {
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = fileName;
+      link.click();
+    }
+  };
+    
+  
+
+    
  handleTimePunchIn = () => {
  const { isPunchedIn, endTime } = this.state;
   
@@ -94,7 +159,7 @@ class Dashboard extends Component {
       });
       return;
     }
-  
+    
     const timestamp = new Date();
   
     axios.post('http://localhost:2000/api/save-timestamp', { timestamp })
@@ -157,8 +222,7 @@ class Dashboard extends Component {
         });
     });
   };
-  
-  
+    
   componentDidMount() {
     // Retrieve punch status from local storage
     const punchStatus = localStorage.getItem('punchStatus');
@@ -169,13 +233,10 @@ class Dashboard extends Component {
       this.setState({ isPunchedIn: false });
     }
   }
-  
-  
+    
   handlePunchInModalClose = () => {
   this.setState({ punchInModalOpen: false });
 };
-
-
 
   constructor() {
     super();
@@ -211,13 +272,11 @@ class Dashboard extends Component {
       clockTime: null,
       attendanceData: [],
       error: null,
-      attendanceData: [],
       error: '',
       showModal: false,
       isdoingOvertime:false,
 
       showWelcomeCard: true,
-      //username: ''
     };
   }
 
@@ -237,7 +296,6 @@ class Dashboard extends Component {
   componentDidMount = () => {
     let token = localStorage.getItem('token');
     if (!token) {
-      // this.props.history.push('/login');
       this.props.navigate("/login");
     } else {
       this.setState({ token: token }, () => {
@@ -245,12 +303,10 @@ class Dashboard extends Component {
       });
     }
   }
-
   
   handlePunchOut = () => {
     // Perform the punch out action
     this.setState({ showModal: false });
-    // ...
   };
 
   handleContinueOvertime = () => {
@@ -259,7 +315,7 @@ class Dashboard extends Component {
 
   componentDidMount() {
     const shiftEnd = new Date();
-    shiftEnd.setHours(12, 27, 0); //shift end time 
+    shiftEnd.setHours(13, 4, 0); //shift end time 
     const now = new Date();
     const hasPunchedIn = this.state.attendanceData.length > 0;
 
@@ -291,12 +347,6 @@ class Dashboard extends Component {
     }
   };
   
-
-
-
-
-
-
   getProduct = () => {
     
     this.setState({ loading: true });
@@ -358,7 +408,6 @@ class Dashboard extends Component {
 
   logOut = () => {
     localStorage.setItem('token', null);
-    // this.props.history.push('/');
     this.props.navigate("/");
   }
 
@@ -1039,7 +1088,6 @@ class Dashboard extends Component {
               onClick={(e) => this.addProduct()} color="primary" autoFocus>
               Add New Employee
             </Button>
-
             
           </DialogActions>
         </Dialog>
@@ -1136,6 +1184,12 @@ class Dashboard extends Component {
             color="default"
             size="small"
             onClick={this.handleShowAttendanceReport}> Show Attendance Report</Button>
+              
+              <Button className="button_style"
+            variant="contained"
+            color="default"
+            size="small"
+              onClick={this.exportToExcel}>Export Report to Excel</Button>
 
 {error && <p>{error}</p>}
         {attendanceData.length > 0 && (
@@ -1147,15 +1201,15 @@ class Dashboard extends Component {
                   <th>Date:</th>
                   <th></th>
                   <th>Time Punch In:</th>
-                  <th></th> {/* Break column */}
+                  <th></th> 
                   <th>Time Punch Out:</th>
                   <th></th>
                   <th>Duration:</th>
-                  <th></th> {/* Break column */}
+                  <th></th> 
                   <th>Lateness:</th>
-                  <th></th> {/* Break column */}
+                  <th></th> 
                   <th>Overtime:</th>
-                  <th></th> {/* Break column */}
+                  <th></th>
                   <th>Status:</th>
                 </tr>
               </thead>
@@ -1195,7 +1249,6 @@ class Dashboard extends Component {
          
           isOpen={showModal}
           contentLabel="Shift End"
-          appElement={null}
         >
           <h2>Your shift time is over. Are you doing overtime?</h2>
           <button onClick={this.handleContinueOvertime}>Yes</button>
@@ -1205,10 +1258,14 @@ class Dashboard extends Component {
     );
   }
 
+  shouldShowModal = (status, punchTimeOut, shiftTimings) => {
+    return punchTimeOut > shiftTimings.end;
+  };
+
   calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
     const shiftTimings = {
-      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 12, 16, 0), //  shift start time
-      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 12, 27, 0) //  shift end time
+      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 15, 16, 0), //  shift start time
+      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 13, 4, 0) //  shift end time
     };
   
     const differenceInMinutesIn = differenceInMinutes(punchTimeIn, shiftTimings.start);
@@ -1224,90 +1281,11 @@ class Dashboard extends Component {
     let overtime =
       differenceInMinutes(punchTimeOut, shiftTimings.end) > 0
         ? `${differenceInMinutes(punchTimeOut, shiftTimings.end)} mins overtime`
-        : 'No Overtime';
+        : '-';
+<button onClick={this.exportToExcel}>Export to Excel</button>
 
-       /* if (status === 'Late' && punchTimeOut > shiftTimings.end) {
-          this.setState({ showModal: true });
-        }
-  */
     return { duration, lateness, status, overtime };
   };
 }
-
-
-
-
-
-
-
-  /*  calculateDuration = (punchTimeIn, punchTimeOut) => {
-    const timeDiff = punchTimeOut.getTime() - punchTimeIn.getTime();
-    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-    const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
-   
-
-    return `${hours} hr : ${minutes}min`;
-  };
-  calculateLateness = (punchTimeIn) => {
-    const shiftTimings = {
-      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 9, 0, 0), // Replace with your shift start time
-      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 17, 0, 0) // Replace with your shift end time
-    };
-
-    const difference = differenceInMinutes(punchTimeIn, shiftTimings.start);
-
-    if (difference <= 0) {
-      return 'On Time';
-    } else {
-      return `${difference} minutes late`;
-    }
-  };
-
-
-  calculateStatus = (punchTimeIn, punchTimeOut) => {
-    const shiftTimings = {
-      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 10, 20, 0), // Shift start time
-      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 9, 45, 0) // shift end time
-    };
-
-    const differenceInMinutesIn = differenceInMinutes(punchTimeIn, shiftTimings.start);
-    const differenceInMinutesOut = differenceInMinutes(punchTimeOut, shiftTimings.end);
-
-    if (differenceInMinutesIn > 0) {
-      return 'Late';
-    } else if (differenceInMinutesOut > 30) {
-      return 'Overtime';
-    } else {
-      return 'On Time';
-    }
-  };
-
-
-
-
-  calculateOvertime = (punchTimeOut) => {
-    const shiftTimings = {
-      start: new Date(punchTimeOut.getFullYear(), punchTimeOut.getMonth(), punchTimeOut.getDate(), 9, 0, 0), //shift start time
-      end: new Date(punchTimeOut.getFullYear(), punchTimeOut.getMonth(), punchTimeOut.getDate(), 17, 0, 0) //shift end time
-    };
-
-    const difference = differenceInMinutes(punchTimeOut, shiftTimings.end);
-
-    if (difference <= 0) {
-      return 'No Overtime';
-    } else {
-      const hours = Math.floor(difference / 60);
-      const minutes = difference % 60;
-      return `${minutes} minutes overtime`;
-    }
-  };
-*/
-
-
-
-
-
-
-
 
 export default withRouter(Dashboard);
