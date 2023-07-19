@@ -223,7 +223,7 @@ class Dashboard extends Component {
     });
   };
     
-  componentDidMount() {
+  /*componentDidMount() {
     // Retrieve punch status from local storage
     const punchStatus = localStorage.getItem('punchStatus');
   
@@ -232,7 +232,7 @@ class Dashboard extends Component {
     } else if (punchStatus === 'out') {
       this.setState({ isPunchedIn: false });
     }
-  }
+  }*/
     
   handlePunchInModalClose = () => {
   this.setState({ punchInModalOpen: false });
@@ -302,6 +302,8 @@ class Dashboard extends Component {
         this.getProduct();
       });
     }
+
+    
   }
   
   handlePunchOut = () => {
@@ -313,23 +315,7 @@ class Dashboard extends Component {
     this.setState({ showModal: false, isDoingOvertime: true });
   };
 
-  componentDidMount() {
-    const shiftEnd = new Date();
-    shiftEnd.setHours(13, 4, 0); //shift end time 
-    const now = new Date();
-    const hasPunchedIn = this.state.attendanceData.length > 0;
-
-    if (now > shiftEnd) {
-      this.setState({ showModal: true });
-    }
-
-    // Automatically punch out after 3 minutes
-    setTimeout(() => {
-      if (!this.state.isDoingOvertime) {
-        this.handlePunchOut();
-      }
-    }, 1 * 60 * 1000);
-  }
+ 
 
   startClock = () => {
     const startTime = new Date();
@@ -360,6 +346,7 @@ class Dashboard extends Component {
       headers: {
         'token': this.state.token
       }
+      
     }).then((res) => {
       this.setState({ loading: false, products: res.data.products, pages: res.data.pages });
     }).catch((err) => {
@@ -470,7 +457,6 @@ class Dashboard extends Component {
       });
       this.handleProductClose();
     });
-
   }
 
   updateProduct = () => {
@@ -1178,20 +1164,20 @@ class Dashboard extends Component {
           <Pagination count={this.state.pages} page={this.state.page} onChange={this.pageChange} color="primary" />
         </TableContainer>
 
-<br></br>
-      <Button className="button_style"
+            <br></br>
+            <Button className="button_style"
             variant="contained"
             color="default"
             size="small"
             onClick={this.handleShowAttendanceReport}> Show Attendance Report</Button>
               
-              <Button className="button_style"
+            <Button className="button_style"
             variant="contained"
             color="default"
             size="small"
-              onClick={this.exportToExcel}>Export Report to Excel</Button>
+              onClick={this.exportToExcel}>Export Attendance Report</Button>
 
-{error && <p>{error}</p>}
+        {error && <p>{error}</p>}
         {attendanceData.length > 0 && (
           <div>
             <h2>Attendance Report</h2>
@@ -1258,6 +1244,7 @@ class Dashboard extends Component {
     );
   }
 
+
   shouldShowModal = (status, punchTimeOut, shiftTimings) => {
     return punchTimeOut > shiftTimings.end;
   };
@@ -1265,7 +1252,7 @@ class Dashboard extends Component {
   calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
     const shiftTimings = {
       start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 15, 16, 0), //  shift start time
-      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 13, 4, 0) //  shift end time
+      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 15, 22, 0) //  shift end time
     };
   
     const differenceInMinutesIn = differenceInMinutes(punchTimeIn, shiftTimings.start);
@@ -1282,10 +1269,12 @@ class Dashboard extends Component {
       differenceInMinutes(punchTimeOut, shiftTimings.end) > 0
         ? `${differenceInMinutes(punchTimeOut, shiftTimings.end)} mins overtime`
         : '-';
-<button onClick={this.exportToExcel}>Export to Excel</button>
 
     return { duration, lateness, status, overtime };
   };
 }
 
 export default withRouter(Dashboard);
+
+
+
