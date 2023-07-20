@@ -13,6 +13,7 @@ import { paginationItemClasses } from '@mui/material';
 import { writeFile } from 'xlsx';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { startTransition } from 'react';
  
 
 const axios = require('axios');
@@ -85,6 +86,25 @@ const Clock = ({ isPunchedIn }) => {
 
 class Dashboard extends Component {
 
+  shouldShowModal = (status, punchTimeOut, shiftTimings) => {
+    if (status === 'OUT') {
+      // Check if the current time is greater than or equal to the punchTimeOut
+      const currentTime = new Date();
+      return currentTime >= new Date(punchTimeOut);
+    } else if (status === 'IN') {
+      // Modify the shift end time here (e.g., set it to 5:00 PM)
+      shiftTimings.end = new Date(shiftTimings.start.getFullYear(), shiftTimings.start.getMonth(), shiftTimings.start.getDate(), 11, 58, 0);
+
+      
+  
+      // Check if the current time is greater than or equal to the updated shiftTimings
+      const currentTime = new Date();
+      return currentTime >= shiftTimings.end;
+    }
+    return false;
+  };
+  
+
   exportToExcel = () => {
     const { attendanceData } = this.state;
     const { username, name, Email } = this.props; // Assuming the user information is passed via props
@@ -144,12 +164,12 @@ class Dashboard extends Component {
       link.click();
     }
   };
-    
-  
 
+  
     
  handleTimePunchIn = () => {
  const { isPunchedIn, endTime } = this.state;
+ this.setState({ status: 'IN' });
   
     if (isPunchedIn) {
       swal({
@@ -183,6 +203,10 @@ class Dashboard extends Component {
   
   handleTimePunchOut = () => {
     const { isPunchedIn, startTime, endTime } = this.state;
+    this.setState({ status: 'OUT' });
+    const currentTime = new Date();
+    this.setState({ punchTimeOut: currentTime });
+
   
     if (!isPunchedIn || !startTime) {
       swal({
@@ -223,16 +247,6 @@ class Dashboard extends Component {
     });
   };
     
-  /*componentDidMount() {
-    // Retrieve punch status from local storage
-    const punchStatus = localStorage.getItem('punchStatus');
-  
-    if (punchStatus === 'in') {
-      this.setState({ isPunchedIn: true });
-    } else if (punchStatus === 'out') {
-      this.setState({ isPunchedIn: false });
-    }
-  }*/
     
   handlePunchInModalClose = () => {
   this.setState({ punchInModalOpen: false });
@@ -275,10 +289,17 @@ class Dashboard extends Component {
       error: '',
       showModal: false,
       isdoingOvertime:false,
-
+      status: 'OUT', // Initialize with appropriate default value if needed
+    punchTimeOut: new Date(), // Initialize with appropriate default value if needed
+    shiftTimings: {
+      start: new Date(),
+      end: new Date()
+    },
       showWelcomeCard: true,
     };
   }
+
+
 
   handleShowAttendanceReport = () => {
     axios
@@ -305,15 +326,6 @@ class Dashboard extends Component {
 
     
   }
-  
-  handlePunchOut = () => {
-    // Perform the punch out action
-    this.setState({ showModal: false });
-  };
-
-  handleContinueOvertime = () => {
-    this.setState({ showModal: false, isDoingOvertime: true });
-  };
 
  
 
@@ -574,8 +586,14 @@ class Dashboard extends Component {
     const { attendanceData, error } = this.state;
     const { isPunchedIn , endTime}=this.state;
     const { showModal } = this.state;
+    const status = this.state.status; 
+    const punchTimeOut = this.state.punchTimeOut;
+    const shiftTimings = this.state.shiftTimings;
 
-    console.log(attendanceData);
+
+    console.log('Status MOFO: ',this.state.status);
+    console.log('punchTimeOut MOFO: ', punchTimeOut);
+    console.log('shiftTimingsMFO: ', shiftTimings);
    
     return (
       <div>
@@ -589,6 +607,30 @@ class Dashboard extends Component {
         {isPunchedIn ? 'Time Punch Out' : 'Time Punch In'}
       </Button>
 
+        {/* Render the "Shift End" modal */}
+        
+        {this.shouldShowModal(status, punchTimeOut, shiftTimings) && (
+          <Dialog
+            open={showModal}
+            onClose={() => this.setState({ showModal: false })}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">Shift End</DialogTitle>
+            <DialogContent>
+              <p>Your shift time has ended.</p>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => this.setState({ showModal: false })}
+                color="primary"
+                autoFocus
+              >
+                OK
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
         {this.state.loading && <LinearProgress size={40} />}
         <div>
           <h2>Dashboard</h2>
@@ -1231,28 +1273,15 @@ class Dashboard extends Component {
             </table>
           </div>
         )}
-         <Modal
-         
-          isOpen={showModal}
-          contentLabel="Shift End"
-        >
-          <h2>Your shift time is over. Are you doing overtime?</h2>
-          <button onClick={this.handleContinueOvertime}>Yes</button>
-          <button onClick={this.handlePunchOut}>No</button>
-        </Modal>
       </div>
     );
   }
 
 
-  shouldShowModal = (status, punchTimeOut, shiftTimings) => {
-    return punchTimeOut > shiftTimings.end;
-  };
-
-  calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
+   calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
     const shiftTimings = {
-      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 15, 16, 0), //  shift start time
-      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 15, 22, 0) //  shift end time
+      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 9, 15, 0), //  shift start time
+      end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 11, 28, 0) //  shift end time
     };
   
     const differenceInMinutesIn = differenceInMinutes(punchTimeIn, shiftTimings.start);
@@ -1275,6 +1304,5 @@ class Dashboard extends Component {
 }
 
 export default withRouter(Dashboard);
-
 
 
