@@ -499,7 +499,6 @@ app.get("/get-product", (req, res) => {
 });
 
 
-
 app.get('/api/attendance-report', async (req, res) => {
   try {
     const userId = req.user.id; // Assuming you have the user ID available in the request

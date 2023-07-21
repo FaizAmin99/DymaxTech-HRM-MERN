@@ -14,13 +14,8 @@ import { writeFile } from 'xlsx';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { startTransition } from 'react';
- 
 
 const axios = require('axios');
-
-
-
-
 
 const Clock = ({ isPunchedIn }) => {
   const [startTime, setStartTime] = useState(null);
@@ -28,6 +23,16 @@ const Clock = ({ isPunchedIn }) => {
   const [duration, setDuration] = useState(null);
 
   useEffect(() => {
+
+    // POP UP Trigger
+    const triggerTime = calculateTriggerTime();
+    const timeDifference = triggerTime.getTime() - new Date().getTime();
+    const timerId = setTimeout(() => {
+      showPopUp();
+    }, timeDifference);
+
+   
+
     if (isPunchedIn) {
      setStartTime(new Date());
       setEndTime(null);
@@ -38,6 +43,9 @@ const Clock = ({ isPunchedIn }) => {
         setEndTime(new Date());
       
     }
+    return () => clearTimeout(timerId);
+
+  
   }, [isPunchedIn]);
 
   useEffect(() => {
@@ -47,7 +55,6 @@ const Clock = ({ isPunchedIn }) => {
       setDuration(formattedDuration);
     }
   }, [startTime, endTime]);
-
 
   const formatDate = (date) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -80,11 +87,26 @@ const Clock = ({ isPunchedIn }) => {
       {duration && <p>Duration: <b>{duration}</b></p>}
     </div>
   );
+};
 
+const showPopUp = () => {
+  alert('POP-UP: Go Home! Shift time is over...');
+};
+
+const calculateTriggerTime = () => {
+  const now = new Date();
+  const nineAM = new Date(now);
+  nineAM.setHours(2, 0, 0);
   
+  const eightHoursLater = new Date(nineAM);
+  eightHoursLater.setHours(eightHoursLater.getHours() + 9);
+
+  return eightHoursLater;
 };
 
 class Dashboard extends Component {
+
+  
 
   shouldShowModal = (status, punchTimeOut, shiftTimings) => {
     if (status === 'OUT') {
@@ -93,9 +115,7 @@ class Dashboard extends Component {
       return currentTime >= new Date(punchTimeOut);
     } else if (status === 'IN') {
       // Modify the shift end time here (e.g., set it to 5:00 PM)
-      shiftTimings.end = new Date(shiftTimings.start.getFullYear(), shiftTimings.start.getMonth(), shiftTimings.start.getDate(), 11, 58, 0);
-
-      
+      shiftTimings.end = new Date(shiftTimings.start.getFullYear(), shiftTimings.start.getMonth(), shiftTimings.start.getDate(), 11, 58, 0); 
   
       // Check if the current time is greater than or equal to the updated shiftTimings
       const currentTime = new Date();
@@ -103,7 +123,6 @@ class Dashboard extends Component {
     }
     return false;
   };
-  
 
   exportToExcel = () => {
     const { attendanceData } = this.state;
@@ -1301,6 +1320,7 @@ class Dashboard extends Component {
 
     return { duration, lateness, status, overtime };
   };
+
 }
 
 export default withRouter(Dashboard);
