@@ -28,7 +28,7 @@ const Clock = ({ isPunchedIn }) => {
     const triggerTime = calculateTriggerTime();
     const timeDifference = triggerTime.getTime() - new Date().getTime();
     const timerId = setTimeout(() => {
-      showPopUp();
+    showPopUp();
     }, timeDifference);
 
    
@@ -65,7 +65,7 @@ const Clock = ({ isPunchedIn }) => {
     const options = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12:'true'};
     return date.toLocaleTimeString('en-US', options);
   };
-
+  
   return (
     <div>
       {startTime && (
@@ -96,7 +96,7 @@ const showPopUp = () => {
 const calculateTriggerTime = () => {
   const now = new Date();
   const nineAM = new Date(now);
-  nineAM.setHours(2, 0, 0);
+  nineAM.setHours(2, 11, 0);
   
   const eightHoursLater = new Date(nineAM);
   eightHoursLater.setHours(eightHoursLater.getHours() + 9);
@@ -107,7 +107,6 @@ const calculateTriggerTime = () => {
 class Dashboard extends Component {
 
   
-
   shouldShowModal = (status, punchTimeOut, shiftTimings) => {
     if (status === 'OUT') {
       // Check if the current time is greater than or equal to the punchTimeOut
@@ -115,9 +114,12 @@ class Dashboard extends Component {
       return currentTime >= new Date(punchTimeOut);
     } else if (status === 'IN') {
       // Modify the shift end time here (e.g., set it to 5:00 PM)
-      shiftTimings.end = new Date(shiftTimings.start.getFullYear(), shiftTimings.start.getMonth(), shiftTimings.start.getDate(), 11, 58, 0); 
+      shiftTimings.end = new Date(shiftTimings.start.getFullYear(), shiftTimings.start.getMonth(), shiftTimings.start.getDate(), 11, 31, 0); 
   
       // Check if the current time is greater than or equal to the updated shiftTimings
+      const currentTime = new Date();
+      return currentTime >= shiftTimings.end;
+    } else if (status === 'OVERTIME') {
       const currentTime = new Date();
       return currentTime >= shiftTimings.end;
     }
@@ -315,10 +317,33 @@ class Dashboard extends Component {
       end: new Date()
     },
       showWelcomeCard: true,
+      sortByDate: 'asc',
+      sortByStatus: 'asc',
+      sortBy:'',
+      sortOrder: ''
     };
   }
 
+  handleSortByDate = () => {
+    const newSortByDate = this.state.sortByDate === 'asc' ? 'desc' : 'asc';
+    console.log('Sorting by date:', newSortByDate);
+    this.setState({ sortByDate: newSortByDate });
+  };
 
+  handleSortByStatus = () => {
+    const newSortByStatus = this.state.sortByStatus === 'asc' ? 'desc' : 'asc';
+    this.setState({ sortByStatus: newSortByStatus });
+  };
+
+  handleSortChange = (event) => {
+    const sortBy = event.target.value;
+    this.setState({ sortBy });
+  };
+
+  handleSortOrderChange = (event) => {
+    const sortOrder = event.target.value;
+    this.setState({ sortOrder });
+  };
 
   handleShowAttendanceReport = () => {
     axios
@@ -342,11 +367,34 @@ class Dashboard extends Component {
         this.getProduct();
       });
     }
-
-    
+      
   }
 
+  componentDidMount() {
+    this.setupTimer();
+  }
+
+
+
+  componentWillUnmount() {
+    this.clearTimer();
+  }
  
+  setupTimer() {
+    const triggerTime = this.calculateTriggerTime();
+    const timeDifference = triggerTime.getTime() - new Date().getTime();
+    this.timerId = setTimeout(() => {
+      this.showDialog();
+    }, timeDifference);
+  }
+
+  clearTimer() {
+    clearTimeout(this.timerId);
+  }
+
+  calculateTriggerTime() {
+
+  }
 
   startClock = () => {
     const startTime = new Date();
@@ -602,21 +650,49 @@ class Dashboard extends Component {
   };
 
  render() {
-    const { attendanceData, error } = this.state;
+    const { attendanceData, error, sortBy, sortOrder } = this.state;
     const { isPunchedIn , endTime}=this.state;
     const { showModal } = this.state;
-    const status = this.state.status; 
+    //const status = this.state.status; 
     const punchTimeOut = this.state.punchTimeOut;
     const shiftTimings = this.state.shiftTimings;
+    const status = isPunchedIn ? 'IN' : 'OUT';
+    const shouldShowModal = this.shouldShowModal(status, this.state.endTime, this.state.shiftTimings);
 
 
-    console.log('Status MOFO: ',this.state.status);
-    console.log('punchTimeOut MOFO: ', punchTimeOut);
-    console.log('shiftTimingsMFO: ', shiftTimings);
-   
+    //console.log('Status MOFO: ',this.state.status);
+    //console.log('punchTimeOut MOFO: ', punchTimeOut);
+    //console.log('shiftTimingsMFO: ', shiftTimings);
+
+    const sortedData = [...attendanceData];
+    if (sortBy === 'date') {
+      sortedData.sort((a, b) => {
+        if (sortOrder === 'asc') {
+          return new Date(a.timestamp) - new Date(b.timestamp);
+        } else {
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        }
+      });
+    } else if (sortBy === 'status') {
+      sortedData.sort((a, b) => {
+        const statuses = ['Late', 'On Time', 'Overtime'];
+        if (sortOrder === 'asc') {
+          return statuses.indexOf(a.status) - statuses.indexOf(b.status);
+        } else {
+          return statuses.indexOf(b.status) - statuses.indexOf(a.status);
+        }
+      });
+    } else if (sortBy === 'status') {
+      sortedData.sort((a,b) => {
+        const statuses = { 'On Time': 1, Late: 2, Overtime: 3};
+        return statuses[a.status] - statuses[b.status];
+      })
+    }
+
     return (
       <div>
        <Clock isPunchedIn={isPunchedIn} />
+
        <Button
        variant="contained" 
        color={ isPunchedIn ? 'secondary' : 'primary'}
@@ -630,26 +706,27 @@ class Dashboard extends Component {
         
         {this.shouldShowModal(status, punchTimeOut, shiftTimings) && (
           <Dialog
-            open={showModal}
-            onClose={() => this.setState({ showModal: false })}
+            open={this.state.showModal}
+            onClose={() => this.hideDialog()}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
           >
             <DialogTitle id="alert-dialog-title">Shift End</DialogTitle>
             <DialogContent>
-              <p>Your shift time has ended.</p>
+              <p>BRO Go Home! Shift is over</p>
             </DialogContent>
             <DialogActions>
               <Button
-                onClick={() => this.setState({ showModal: false })}
+                onClick={() => this.hideDialog()}
                 color="primary"
-                autoFocus
-              >
+                autoFocus>
                 OK
               </Button>
             </DialogActions>
           </Dialog>
         )}
+
+
         {this.state.loading && <LinearProgress size={40} />}
         <div>
           <h2>Dashboard</h2>
@@ -1242,6 +1319,39 @@ class Dashboard extends Component {
         {attendanceData.length > 0 && (
           <div>
             <h2>Attendance Report</h2>
+<Select
+  className='select_style'
+  value= {sortBy}
+  onChange={this.handleSortChange}
+  displayEmpty
+  >
+    <MenuItem value="">Sort By:</MenuItem>
+    <MenuItem value="date">Date:</MenuItem>
+    <MenuItem value="status">Status:</MenuItem>
+  </Select>
+
+  {sortBy === 'date' ? (
+  <Select
+    className='select_style'
+    value={sortOrder}
+    onChange={this.handleSortOrderChange}
+    >
+     
+      <MenuItem value="asc">Ascending</MenuItem>
+      <MenuItem value="desc">Descending</MenuItem>
+    </Select>
+      ): (
+    <Select
+    className='select_style'
+    value={sortOrder}
+    onChange={this.handleSortOrderChange}
+    >
+      <MenuItem value="onTime">On Time</MenuItem>
+      <MenuItem value="late">Late</MenuItem>
+      <MenuItem value="overtime">OverTime</MenuItem>
+    </Select>
+
+      )}
             <table>
               <thead>
                 <tr>
@@ -1261,7 +1371,7 @@ class Dashboard extends Component {
                 </tr>
               </thead>
               <tbody>
-              {attendanceData.map((timestamp) => {
+              {sortedData.map((timestamp) => {
                   const punchTimeIn = new Date(timestamp.timestamp);
                   const punchTimeOut = new Date(timestamp.timestamp_out);
                   const { duration, lateness, status, overtime } = this.calculateTimeMetrics(
@@ -1291,7 +1401,7 @@ class Dashboard extends Component {
               </tbody>
             </table>
           </div>
-        )}
+        )}    
       </div>
     );
   }
@@ -1299,7 +1409,7 @@ class Dashboard extends Component {
 
    calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
     const shiftTimings = {
-      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 9, 15, 0), //  shift start time
+      start: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 12, 35, 0), //  shift start time
       end: new Date(punchTimeIn.getFullYear(), punchTimeIn.getMonth(), punchTimeIn.getDate(), 11, 28, 0) //  shift end time
     };
   
@@ -1320,9 +1430,7 @@ class Dashboard extends Component {
 
     return { duration, lateness, status, overtime };
   };
-
 }
 
 export default withRouter(Dashboard);
-
 

@@ -380,10 +380,7 @@ app.post("/update-product", upload.any(), (req, res) => {
         if(req.bofy.emer_mob){
           new_product.emer_mob = req.emer_mob;
         }
-        
-        
-        
-
+              
         new_product.save((err, data) => {
           if (err) {
             res.status(400).json({
