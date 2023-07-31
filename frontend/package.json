@@ -33,7 +33,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "author": "Foram Sojitra",
+  "author": "Faiz Amin",
   "license": "ISC",
   "eslintConfig": {
     "extends": "react-app"
