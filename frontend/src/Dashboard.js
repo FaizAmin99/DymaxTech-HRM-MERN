@@ -176,7 +176,7 @@ class Dashboard extends Component {
   
     const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
   
-    if (window.navigator.msSaveOrOpenBlob) {
+    if (window.navigator.msSaveOrOpenBlob) { 
       window.navigator.msSaveOrOpenBlob(blob, fileName);
     } else {
       const link = document.createElement('a');
@@ -199,6 +199,8 @@ class Dashboard extends Component {
       return;
     }
 
+
+
     const timestamp = new Date();
   
     axios.post('http://localhost:2000/api/save-timestamp', { timestamp })
@@ -209,6 +211,9 @@ class Dashboard extends Component {
           text: `You ${action} at ${timestamp.toLocaleTimeString()}`,
           icon: 'success',
           title: 'Success!',
+          timer:2500,
+          closeOnClickOutside: false,
+          button: false,
         });
         this.setState({ isPunchedIn: true, startTime: timestamp });
   
@@ -250,6 +255,10 @@ class Dashboard extends Component {
       text: `You punched out at ${timestamp.toLocaleTimeString()}`,
       icon: 'success',
       title: 'Success!',
+      button: false,
+      closeOnClickOutside: false,
+      timer:2500,
+      
     }).then(() => {
       axios
         .post('http://localhost:2000/api/save-timestamp', { timestamp })
