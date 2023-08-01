@@ -185,8 +185,6 @@ class Dashboard extends Component {
       link.click();
     }
   };
-
-  
     
  handleTimePunchIn = () => {
  const { isPunchedIn, endTime } = this.state;
@@ -196,11 +194,11 @@ class Dashboard extends Component {
       swal({
         text: 'You have already punched in for today.',
         icon: 'warning',
-        type: 'warning',
+        title: 'Warning!',
       });
       return;
     }
-    
+
     const timestamp = new Date();
   
     axios.post('http://localhost:2000/api/save-timestamp', { timestamp })
@@ -210,7 +208,7 @@ class Dashboard extends Component {
         swal({
           text: `You ${action} at ${timestamp.toLocaleTimeString()}`,
           icon: 'success',
-          type: 'success',
+          title: 'Success!',
         });
         this.setState({ isPunchedIn: true, startTime: timestamp });
   
@@ -233,7 +231,7 @@ class Dashboard extends Component {
       swal({
         text: 'You have not punched in today.',
         icon: 'warning',
-        type: 'warning',
+        title: 'Warning!',
       });
       return;
     }
@@ -242,7 +240,7 @@ class Dashboard extends Component {
       swal({
         text: 'You have already punched out for today.',
         icon: 'warning',
-        type: 'warning',
+        title: 'Warning!',
       });
       return;
     }
@@ -251,7 +249,7 @@ class Dashboard extends Component {
       swal({
       text: `You punched out at ${timestamp.toLocaleTimeString()}`,
       icon: 'success',
-      type: 'success',
+      title: 'Success!',
     }).then(() => {
       axios
         .post('http://localhost:2000/api/save-timestamp', { timestamp })
@@ -267,8 +265,7 @@ class Dashboard extends Component {
         });
     });
   };
-    
-    
+        
   handlePunchInModalClose = () => {
   this.setState({ punchInModalOpen: false });
 };
@@ -311,11 +308,12 @@ class Dashboard extends Component {
       showModal: false,
       isdoingOvertime:false,
       status: 'OUT', // Initialize with appropriate default value if needed
-    punchTimeOut: new Date(), // Initialize with appropriate default value if needed
-    shiftTimings: {
+      loggedInUsername: localStorage.getItem("username"),
+      punchTimeOut: new Date(), // Initialize with appropriate default value if needed
+      shiftTimings: {
       start: new Date(),
       end: new Date()
-    },
+      },
       showWelcomeCard: true,
       sortByDate: 'asc',
       sortByStatus: 'asc',
@@ -349,7 +347,8 @@ class Dashboard extends Component {
     axios
       .get('http://localhost:2000/api/attendance')
       .then(response => {
-        this.setState({ attendanceData: response.data, error: null });
+        const filteredAttendanceData = response.data.filter(entry => entry.username === this.stateloggedInUsername);
+        this.setState({ attendanceData: filteredAttendanceData, error: null });
       })
 
       .catch(error => {
@@ -360,21 +359,20 @@ class Dashboard extends Component {
 
   componentDidMount = () => {
     let token = localStorage.getItem('token');
+    let username = localStorage.getItem('username');
     if (!token) {
       this.props.navigate("/login");
     } else {
-      this.setState({ token: token }, () => {
+      this.setState({ token: token, loggedInUsername: username }, () => {
+        this.handleShowAttendanceReport();
         this.getProduct();
       });
-    }
-      
+    }      
   }
 
   componentDidMount() {
     this.setupTimer();
   }
-
-
 
   componentWillUnmount() {
     this.clearTimer();
@@ -400,7 +398,8 @@ class Dashboard extends Component {
     const startTime = new Date();
     this.setState({ clockTime: startTime });
   };
-  
+
+
   stopClock = () => {
     const { clockTime } = this.state;
     if (clockTime) {
@@ -432,7 +431,7 @@ class Dashboard extends Component {
       swal({
         text: err.response.data.errorMessage,
         icon: "error",
-        type: "error"
+        title: "Error!"
       });
       this.setState({ loading: false, products: [], pages: 0 },()=>{});
     });
@@ -451,7 +450,7 @@ class Dashboard extends Component {
       swal({
         text: res.data.title,
         icon: "success",
-        type: "success"
+        title: "Success!"
       });
 
       this.setState({ page: 1 }, () => {
@@ -461,7 +460,7 @@ class Dashboard extends Component {
       swal({
         text: err.response.data.errorMessage,
         icon: "error",
-        type: "error"
+        title: "Error!"
       });
     });
   }
@@ -521,7 +520,7 @@ class Dashboard extends Component {
       swal({
         text: res.data.title,
         icon: "success",
-        type: "success"
+        title: "Success!"
       });
 
       this.handleProductClose();
@@ -532,7 +531,7 @@ class Dashboard extends Component {
       swal({
         text: err.response.data.errorMessage,
         icon: "error",
-        type: "error"
+        title: "Error!"
       });
       this.handleProductClose();
     });
@@ -570,7 +569,7 @@ class Dashboard extends Component {
       swal({
         text: res.data.title,
         icon: "success",
-        type: "success"
+        title: "Success!"
       });
 
       this.handleProductEditClose();
@@ -581,7 +580,7 @@ class Dashboard extends Component {
       swal({
         text: err.response.data.errorMessage,
         icon: "error",
-        type: "error"
+        title: "Error!"
       });
       this.handleProductEditClose();
     });
@@ -660,9 +659,9 @@ class Dashboard extends Component {
     const shouldShowModal = this.shouldShowModal(status, this.state.endTime, this.state.shiftTimings);
 
 
-    //console.log('Status MOFO: ',this.state.status);
-    //console.log('punchTimeOut MOFO: ', punchTimeOut);
-    //console.log('shiftTimingsMFO: ', shiftTimings);
+    //console.log('Status: ',this.state.status);
+    //console.log('punchTimeOut: ', punchTimeOut);
+    //console.log('shiftTimings: ', shiftTimings);
 
     const sortedData = [...attendanceData];
     if (sortBy === 'date') {
@@ -692,12 +691,14 @@ class Dashboard extends Component {
     return (
       <div>
        <Clock isPunchedIn={isPunchedIn} />
+      
 
+    
        <Button
        variant="contained" 
        color={ isPunchedIn ? 'secondary' : 'primary'}
         onClick={isPunchedIn ? this.handleTimePunchOut : this.handleTimePunchIn}
-        disabled={isPunchedIn && endTime}
+        disabled={Boolean(isPunchedIn && endTime)}
       >
         {isPunchedIn ? 'Time Punch Out' : 'Time Punch In'}
       </Button>
@@ -1319,7 +1320,7 @@ class Dashboard extends Component {
         {attendanceData.length > 0 && (
           <div>
             <h2>Attendance Report</h2>
-<Select
+  <Select
   className='select_style'
   value= {sortBy}
   onChange={this.handleSortChange}
@@ -1328,15 +1329,14 @@ class Dashboard extends Component {
     <MenuItem value="">Sort By:</MenuItem>
     <MenuItem value="date">Date:</MenuItem>
     <MenuItem value="status">Status:</MenuItem>
-  </Select>
+    </Select>
 
   {sortBy === 'date' ? (
   <Select
     className='select_style'
     value={sortOrder}
     onChange={this.handleSortOrderChange}
-    >
-     
+    >     
       <MenuItem value="asc">Ascending</MenuItem>
       <MenuItem value="desc">Descending</MenuItem>
     </Select>
@@ -1405,7 +1405,6 @@ class Dashboard extends Component {
       </div>
     );
   }
-
 
    calculateTimeMetrics = (punchTimeIn, punchTimeOut) => {
     const shiftTimings = {

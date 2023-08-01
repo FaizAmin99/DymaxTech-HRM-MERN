@@ -374,10 +374,10 @@ app.post("/update-product", upload.any(), (req, res) => {
         if(req.body.cv_link) {
           new_product.cv_link = req.cv_link;
         }
-        if(req.bofy.emer_name){
+        if(req.body.emer_name){
           new_product.emer_name = req.emer_name;
         }
-        if(req.bofy.emer_mob){
+        if(req.body.emer_mob){
           new_product.emer_mob = req.emer_mob;
         }
               
