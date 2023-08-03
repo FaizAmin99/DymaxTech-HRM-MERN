@@ -6,9 +6,18 @@ timestampSchema = new Schema({
     type: Date,
     required: true },
 
-    timestamp_out: { 
-      type: Date
-    },
+  timestamp_out: { 
+    type: Date
+  },
+  user: {
+    type: String,
+    required: true
+  },
+
+  status: { 
+    type: String, 
+    enum: ['On Time' , 'Late' , 'Overtime'], 
+    default: 'On Time'}
   
 });
 

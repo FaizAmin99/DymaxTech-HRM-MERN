@@ -3,7 +3,12 @@ var Schema = mongoose.Schema;
 
 userSchema = new Schema( {
 	username: String,
-	password: String
+	password: String,
+	role : {
+		type: String,
+		enum: ['employee' , 'admin' ], 
+		default: 'employee'
+	}
 }),
 user = mongoose.model('user', userSchema);
 

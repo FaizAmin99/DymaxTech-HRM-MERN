@@ -36,6 +36,8 @@ app.use(bodyParser.urlencoded({extended:false}))
 // Defining route to save the timestamp
 // Defining route to save the timestamp
 app.post('/api/save-timestamp', async (req, res) => {
+  
+
   let karachiTime; // Declare the variable outside the try block
   try {
     karachiTime = moment().tz("Asia/Karachi"); // Initialize the variable inside the try block
@@ -46,18 +48,22 @@ app.post('/api/save-timestamp', async (req, res) => {
       // If an existing timestamp record without a time out is found,
       // update it with the time out timestamp
       existingTimestamp.timestamp_out = karachiTime.toDate();
+      existingTimestamp.user =  req.body.time_data.user;
       await existingTimestamp.save();
-      console.log('Timestamp Out saved:', karachiTime.format('HH:mm:ss'));
+      // console.log('Timestamp Out saved:', karachiTime.format('HH:mm:ss'));
+  
       res.status(200).json({ success: true, timestamp: existingTimestamp });
     } else {
       // If no existing timestamp record without a time out is found,
       // create a new timestamp record with the time in timestamp
       const newTimestamp = new Timestamp({
         timestamp: karachiTime.toDate(),
-        timestamp_out: null
+        timestamp_out: null,
+        user: req.body.time_data.user
       });
       await newTimestamp.save();
-      console.log('Timestamp In saved:', karachiTime.format('HH:mm:ss'));
+      // console.log('Timestamp In saved:', karachiTime.format('HH:mm:ss'));
+
       res.status(200).json({ success: true, timestamp: newTimestamp });
     }
   } catch (err) {
@@ -128,10 +134,15 @@ app.get("/", (req, res) => {
   });
 });
 
+
+
 /* login api */
 app.post("/login", (req, res) => {
+
+  
   try {
     if (req.body && req.body.username && req.body.password) {
+      // let current_user =  user.find({ username: request.body.username });
       user.find({ username: req.body.username }, (err, data) => {
         if (data.length > 0) {
 
@@ -196,7 +207,7 @@ app.post("/register", (req, res) => {
 
         } else {
           res.status(400).json({
-            errorMessage: `UserName ${req.body.username} Already Exist!`,
+            errorMessage: `${req.body.username} Already Exists!`,
             status: false
           });
         }
@@ -216,18 +227,19 @@ app.post("/register", (req, res) => {
     });
   }
 });
-function checkUserAndGenerateToken(data, req, res) {
+function checkUserAndGenerateToken(data, req, res, username) {
   jwt.sign({ user: data.username, id: data._id }, 'shhhhh11111', { expiresIn: '1d' }, (err, token) => {
     if (err) {
       res.status(400).json({
         status: false,
-        errorMessage: err,
+        errorMessage: err
       });
     } else {
       res.json({
         message: 'Login Successfully.',
         token: token,
-        status: true
+        status: true,
+        username: req.body.username
       });
     }
   });
@@ -285,7 +297,6 @@ app.post("/add-product", upload.any(), (req, res) => {
       new_product.emer_mob = req.body.emer_mob;
       new_product.image = req.files[0].filename;
       
-
       new_product.user_id = req.user.id;
       new_product.save((err, data) => {
         if (err) {

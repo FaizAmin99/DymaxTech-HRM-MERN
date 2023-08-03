@@ -17,6 +17,8 @@ import { startTransition } from 'react';
 
 const axios = require('axios');
 
+
+
 const Clock = ({ isPunchedIn }) => {
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
@@ -185,9 +187,13 @@ class Dashboard extends Component {
       link.click();
     }
   };
-    
+  
+  
+
+
  handleTimePunchIn = () => {
  const { isPunchedIn, endTime } = this.state;
+
  this.setState({ status: 'IN' });
   
     if (isPunchedIn) {
@@ -198,12 +204,21 @@ class Dashboard extends Component {
       });
       return;
     }
-
+ 
 
 
     const timestamp = new Date();
+
+    var current_user = JSON.stringify(localStorage.getItem('username'))
+    current_user = current_user.replace(/['"]+/g, '');
+
+    let time_data = {
+      user: current_user,
+      timestamp: timestamp
+    }
+
   
-    axios.post('http://localhost:2000/api/save-timestamp', { timestamp })
+    axios.post('http://localhost:2000/api/save-timestamp', { time_data })
       .then((res) => {
         console.log('Timestamp saved successfully:', res.data);
         const action = 'punched in';
@@ -251,6 +266,14 @@ class Dashboard extends Component {
     }
       const timestamp = new Date();
   
+      var current_user2 = JSON.stringify(localStorage.getItem('username'))
+      current_user2 = current_user2.replace(/['"]+/g, '');
+
+      let time_data = {
+        user: current_user2,
+        timestamp: timestamp
+      }
+
       swal({
       text: `You punched out at ${timestamp.toLocaleTimeString()}`,
       icon: 'success',
@@ -261,7 +284,7 @@ class Dashboard extends Component {
       
     }).then(() => {
       axios
-        .post('http://localhost:2000/api/save-timestamp', { timestamp })
+        .post('http://localhost:2000/api/save-timestamp', { time_data })
         .then((res) => {
           console.log('Timestamp saved successfully:', res.data);
           this.setState({ endTime: timestamp }, () => {
@@ -356,7 +379,9 @@ class Dashboard extends Component {
     axios
       .get('http://localhost:2000/api/attendance')
       .then(response => {
-        const filteredAttendanceData = response.data.filter(entry => entry.username === this.stateloggedInUsername);
+
+        var logged_in_user = localStorage.getItem('username');
+        const filteredAttendanceData = response.data.filter(entry => entry.user === logged_in_user);
         this.setState({ attendanceData: filteredAttendanceData, error: null });
       })
 
@@ -658,7 +683,7 @@ class Dashboard extends Component {
   };
 
  render() {
-    const { attendanceData, error, sortBy, sortOrder } = this.state;
+    const { attendanceData, error, sortBy, sortOrder, loggedInUsername } = this.state;
     const { isPunchedIn , endTime}=this.state;
     const { showModal } = this.state;
     //const status = this.state.status; 
@@ -666,6 +691,7 @@ class Dashboard extends Component {
     const shiftTimings = this.state.shiftTimings;
     const status = isPunchedIn ? 'IN' : 'OUT';
     const shouldShowModal = this.shouldShowModal(status, this.state.endTime, this.state.shiftTimings);
+    const usernameWithoutSuffix = loggedInUsername.replace('@dymaxtech.com', ' ');
 
 
     //console.log('Status: ',this.state.status);
@@ -739,7 +765,9 @@ class Dashboard extends Component {
 
         {this.state.loading && <LinearProgress size={40} />}
         <div>
-          <h2>Dashboard</h2>
+          <div className='welcome-box'>
+          <h2>Welcome, {usernameWithoutSuffix}</h2>
+          </div>
           <Button
             className="button_style"
             variant="contained"
@@ -1381,6 +1409,7 @@ class Dashboard extends Component {
               </thead>
               <tbody>
               {sortedData.map((timestamp) => {
+                  let user = timestamp.user;
                   const punchTimeIn = new Date(timestamp.timestamp);
                   const punchTimeOut = new Date(timestamp.timestamp_out);
                   const { duration, lateness, status, overtime } = this.calculateTimeMetrics(
