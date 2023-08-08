@@ -1,0 +1,7 @@
+.welcome-box {
+    background-color: rgb(40, 150, 213);
+    padding: 10px;
+    border: 1px solid rgb(83, 219, 137);
+    border-radius: 5px;
+    margin-bottom: 20px;
+  }
