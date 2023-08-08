@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "@mui/lab": "^5.0.0-alpha.134",
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "file-saver": "^2.0.5",
+    "js-xlsx": "^0.8.22",
+    "jsonwebtoken": "^9.0.1",
+    "react": "^18.2.0",
+    "react-live-clock": "^6.1.14",
+    "react-modal": "^3.16.1",
+    "xlsx": "^0.18.5"
+  }
+}
